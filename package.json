@@ -1,5 +1,5 @@
 {
-  "name": "burden-reduction-smart-on-fhir",
+  "name": "sf-fhir-app",
   "version": "1.0.0",
   "description": "A smart on fhir app for HC Payers to test crd-dtr-pas functionality in their org by acting as a middleware between providers and HC Payer",
   "main": "index.js",
@@ -19,5 +19,8 @@
     "smartonfhir"
   ],
   "author": "gnaik",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
 }
