@@ -4,4 +4,4 @@ This app is built to integrate with EHR system(s) for fetching Clinical Informat
 Steps to start the app:
 1. Clone the repository.
 2. run command npm install to install all the dependencies mentioned in the package.json.
-3. run node app.js to start the server.
+3. run npm start to start the server.

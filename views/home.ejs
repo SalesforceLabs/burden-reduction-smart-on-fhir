@@ -1,0 +1,22 @@
+<%- include('header') -%>
+
+<div class="text-center center-div" id="providerLogin">
+    <div class="container w-25 border py-5">
+        <div class="title pb-5">
+            <h2 class="font-weight-bold">Welcome to Utilization Management Portal</h2>
+            <span>Please Configure Provider and Payer</span>
+        </div>
+        <form action="/route/provider-login" method="POST" class="pt-2">
+            <div class="pt-3">
+                <button type="submit" class="btn btn-success rounded-pill">Login to Provider</button>
+            </div>
+        </form>
+        <form action="/route/payer-login" method="POST" class="pt-2">
+            <div class="pt-3">
+                <button type="submit" class="btn btn-success rounded-pill">Login to Payer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('footer') -%>

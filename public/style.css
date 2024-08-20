@@ -1,0 +1,28 @@
+.center-div{
+    padding-top: 10%;
+}
+
+.btn.btn-sucess{
+    padding:.4em 2em;
+}
+
+form{
+    padding:0 3em;
+}
+
+#providerLogin .title>span{
+    font: size 0.8em;
+}
+
+body {
+    background-image: url("assets/get-more-from-digital-cnx21-zoom-background.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.container{
+    box-shadow: 1px 1px 1px lightblue;
+    background-color: white;
+    border-color: black;
+    border-style: double;
+}

@@ -4,7 +4,8 @@
   "description": "A smart on fhir app for HC Payers to test crd-dtr-pas functionality in their org by acting as a middleware between providers and HC Payer",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,11 @@
   "author": "gnaik",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.19.2"
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "nodemon": "^3.1.4",
+    "uuid": "^10.0.0"
   }
 }
