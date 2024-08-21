@@ -26,3 +26,44 @@ body {
     border-color: black;
     border-style: double;
 }
+
+.card {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #fff;
+    width :max-content;
+  }
+
+  .card.warning {
+    border-color: #eb300a;
+    background-color: #fab3a5;
+  }
+
+  .card.info {
+    border-color: rgb(2, 55, 31);
+    background-color: #a5dfad;
+  }
+
+  .card-header h3 {
+    margin: 0 0 10px;
+  }
+
+  .card-body p {
+    margin: 10px 0;
+  }
+
+  .card-link {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .card-link:hover {
+    text-decoration: underline;
+  }
+
+  .cardContainer{
+    padding-top: 10%;
+    padding-left: 25%;
+  }
