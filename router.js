@@ -2,11 +2,11 @@ var express = require('express');
 var router = express.Router();
 
 router.post('/provider-login', (req, res) => {
-    res.redirect('/route/provider-login');
+    res.redirect('/provider-login');
 });
 
 router.post('/payer-login', (req, res) => {
-    res.redirect('/route/payer-login');
+    res.redirect('/payer-login');
 });
 
 router.get('/provider-login', (req, res) => {

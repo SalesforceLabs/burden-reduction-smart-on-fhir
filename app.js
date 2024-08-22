@@ -8,7 +8,7 @@ const router = require('./router');
 const cards = require('./data/cards');
 const systemActions = require('./data/systemActions');
 
-app.use('/route', router);
+app.use('/', router);
 
 app.set('view engine','ejs');
 app.use('/static',express.static(path.join(__dirname, 'public')));
