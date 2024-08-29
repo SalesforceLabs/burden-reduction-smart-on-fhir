@@ -1,0 +1,37 @@
+<%- include('header') -%>
+
+<div class="text-center center-div">
+    <div class="container w-50 border py-5">
+        <h3>OAuth Authentication Successful</h3>
+        <p>Your Access Token is:</p>
+        <textarea readonly class="form-control" rows="5"><%= token %></textarea>
+        <button id="callIpBtn" class="btn btn-primary mt-3">Call Integration Procedure</button>
+        <div id="responseContainer" class="mt-4"></div>
+    </div>
+</div>
+
+<%- include('footer') -%>
+
+<script>
+    //call post call-ip
+    document.getElementById('callIpBtn').addEventListener('click', function() {
+        fetch('/call-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            if (data.success) {
+                responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>
