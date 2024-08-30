@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 var router = express.Router();
 var bodyParser = require('body-parser');
+var payerConfig = require('./config/payerConfig.json');
 const fileUpdater = require('./utils/FileUpdater');
 require('dotenv').config();
 
@@ -23,10 +24,12 @@ router.post('/payer-login', (req, res) => {
 
 router.post('/payer/oauthCallback', (req, res) => {
     const accessToken = req.body.access_token;
+    const instanceUrl = req.body.instance_url;
     const redirectUrl = `/payer/oauthCallback?access_token=${accessToken}`;
     const filePath = path.join(__dirname, `config/payerConfig.json`);
     fileUpdater.updateFile(filePath, {
-        accessToken : accessToken
+        accessToken : accessToken,
+        instanceUrl : instanceUrl
     })
     .then(() => {
         console.log('Update complete');
@@ -37,10 +40,12 @@ router.post('/payer/oauthCallback', (req, res) => {
 
 router.post('/provider/oauthCallback', (req, res) => {
     const accessToken = req.body.access_token;
+    const instanceUrl = req.body.instance_url;
     const redirectUrl = `/provider/oauthCallback?access_token=${accessToken}`;
     const filePath = path.join(__dirname, `config/providerConfig.json`);
     fileUpdater.updateFile(filePath, {
-        accessToken : accessToken
+        accessToken : accessToken,
+        instanceUrl : instanceUrl
     })
     .then(() => {
         console.log('Update complete');
@@ -51,16 +56,18 @@ router.post('/provider/oauthCallback', (req, res) => {
 
 router.post('/updateConfig', (req, res) => {
     const userType = req.body.userType;
-    const instanceUrl = req.body.instanceUrl;
+    const baseUrl = req.body.baseUrl;
     const clientId = req.body.clientId;
     const callbackUrl = req.body.callbackUrl;
+    const authUrl = path.join(baseUrl,'services/oauth2/authorize');
     const fileName = (userType == 'payerLogin' ? 'payerConfig.json' : 'providerConfig.json');
     const filePath = path.join(__dirname, `config/${fileName}`);
 
     fileUpdater.updateFile(filePath, {
-        instanceUrl: instanceUrl,
+        baseUrl: baseUrl,
         clientId: clientId,
-        callbackUrl: callbackUrl
+        callbackUrl: callbackUrl,
+        authUrl : authUrl
     })
     .then(() => {
         console.log('Update complete');
@@ -70,8 +77,10 @@ router.post('/updateConfig', (req, res) => {
 });
 
 router.post('/call-ip', async (req, res) => {
-    const integrationProcedureUrl = process.env.SALESFORCE_BASE_URL + process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL;
+    console.log(payerConfig.instanceUrl);
+    const integrationProcedureUrl = path.join(payerConfig.instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL);
     const requestDataPath = path.join(__dirname, 'requestData.json');
+    const accessToken = payerConfig.accessToken;
     let requestData = {};
     try {
         requestData = JSON.parse(fs.readFileSync(requestDataPath, 'utf8'));

@@ -12,6 +12,7 @@
             const fragment = window.location.hash.substring(1);
             const params = new URLSearchParams(fragment);
             const accessToken = params.get('access_token');
+            const instanceUrl = params.get('instance_url');
 
             if (accessToken) {
                 // Send the access token to the server
@@ -20,7 +21,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ access_token: accessToken }),
+                    body: JSON.stringify({ access_token: accessToken, instance_url: instanceUrl}),
                 }).then(response => {
                     return response.json();
                 }).then(data => {

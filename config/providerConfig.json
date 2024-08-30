@@ -2,5 +2,7 @@
   "instanceUrl": null,
   "clientId": null,
   "callbackUrl": null,
-  "accessToken": null
+  "accessToken": null,
+  "authUrl": null,
+  "baseUrl": null
 }

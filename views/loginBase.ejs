@@ -6,8 +6,8 @@
         </div>
         <form id="<%= formId %>"  class="pt-2">
             <div class="form-group">
-                <small class="form-text text-muted text-left">Enter Instance URL</small>
-                <input type="url" class="form-control" placeholder="instance url" id="instanceUrl" name="instanceUrl" required>
+                <small class="form-text text-muted text-left">Enter Base URL</small>
+                <input type="url" class="form-control" placeholder="base url" id="baseUrl" name="baseUrl" required>
             </div>
             <div class="form-group pt-3">
                 <small class="form-text text-muted text-left">Enter Client Id</small>
@@ -32,11 +32,11 @@
         $(`#${formId}`).on('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission
 
-            var instanceUrl = $('#instanceUrl').val();
+            var baseUrl = $('#baseUrl').val();
             var clientId = $('#clientId').val(); 
             var callbackUrl = $('#callbackUrl').val();
             var scope = 'api full';
-            var oauthUrl = `${instanceUrl}?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`;
+            var oauthUrl = `${baseUrl}/services/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`;
 
             fetch('/updateConfig', {
                 method: 'POST',
@@ -45,7 +45,7 @@
                 },
                 body : JSON.stringify({
                     "userType": formId,
-                    "instanceUrl": instanceUrl,
+                    "baseUrl": baseUrl,
                     "clientId": clientId,
                     "callbackUrl":callbackUrl
                 })
