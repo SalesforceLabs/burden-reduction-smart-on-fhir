@@ -67,3 +67,34 @@ body {
     padding-top: 10%;
     padding-left: 25%;
   }
+
+  .spinner {
+    border: 8px solid rgba(0, 0, 0, 0.1); /* Light gray */
+    border-radius: 50%;
+    border-top: 8px solid #3498db; /* Blue color */
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -25px; /* Half of width */
+    margin-top: -25px; /* Half of height */
+    z-index:1001;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  backdrop-filter: blur(5px); /* Blur effect */
+  z-index: 1000; /* Make sure backdrop is below the spinner */
+}

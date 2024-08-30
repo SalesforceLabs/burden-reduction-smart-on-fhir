@@ -3,8 +3,16 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 var router = express.Router();
+var bodyParser = require('body-parser');
+const fileUpdater = require('./utils/FileUpdater');
 require('dotenv').config();
 
+//Use Section
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
+
+
+//Post Section
 router.post('/provider-login', (req, res) => {
     res.redirect('/provider-login');
 });
@@ -13,23 +21,52 @@ router.post('/payer-login', (req, res) => {
     res.redirect('/payer-login');
 });
 
-router.get('/provider-login', (req, res) => {
-    res.render('providerLogin', {title:"Provider Login"});
+router.post('/payer/oauthCallback', (req, res) => {
+    const accessToken = req.body.access_token;
+    const redirectUrl = `/payer/oauthCallback?access_token=${accessToken}`;
+    const filePath = path.join(__dirname, `config/payerConfig.json`);
+    fileUpdater.updateFile(filePath, {
+        accessToken : accessToken
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true, token: accessToken, redirectUrl: redirectUrl});
+    })
+    .catch(err => console.error('Update failed:', err)); 
 });
 
-router.get('/payer-login', (req, res) => {
-    res.render('payerLogin', {title:"Payer Login"});
+router.post('/provider/oauthCallback', (req, res) => {
+    const accessToken = req.body.access_token;
+    const redirectUrl = `/provider/oauthCallback?access_token=${accessToken}`;
+    const filePath = path.join(__dirname, `config/providerConfig.json`);
+    fileUpdater.updateFile(filePath, {
+        accessToken : accessToken
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true, token: accessToken, redirectUrl: redirectUrl});
+    })
+    .catch(err => console.error('Update failed:', err)); 
 });
 
-let accessToken = '';
+router.post('/updateConfig', (req, res) => {
+    const userType = req.body.userType;
+    const instanceUrl = req.body.instanceUrl;
+    const clientId = req.body.clientId;
+    const callbackUrl = req.body.callbackUrl;
+    const fileName = (userType == 'payerLogin' ? 'payerConfig.json' : 'providerConfig.json');
+    const filePath = path.join(__dirname, `config/${fileName}`);
 
-//gets executed by the callback from oauth
-router.get('/callback', (req, res) => {
-    console.log('Callback route hit'); 
-    accessToken = req.query.access_token;
-    res.render('oauthCallback', {
-        token: accessToken,title:"IP Call"
-    });
+    fileUpdater.updateFile(filePath, {
+        instanceUrl: instanceUrl,
+        clientId: clientId,
+        callbackUrl: callbackUrl
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err));       
 });
 
 router.post('/call-ip', async (req, res) => {
@@ -56,6 +93,60 @@ router.post('/call-ip', async (req, res) => {
             error: error.message
         });
     }
+});
+
+
+
+
+//Get Section
+router.get('/', function (req, res) {
+    res.render('home', {title:"Login System"});
+  });
+
+router.get('/provider-login', (req, res) => {
+    res.render('providerLogin', {title:"Provider Login"});
+});
+
+router.get('/payer-login', (req, res) => {
+    res.render('payerLogin', {title:"Payer Login"});
+});
+
+
+//gets executed by the callback from oauth
+router.get('/payer/callback', (req, res) => { 
+    res.render('callback', {
+        oauthCallBackUrl : "/payer/oauthCallback"
+    });
+});
+
+router.get('/provider/callback', (req, res) => { 
+    res.render('callback', {
+        oauthCallBackUrl : "/provider/oauthCallback"
+    });
+});
+
+
+router.get('/payer/oauthCallback', (req, res) => {
+    accessToken = req.query.access_token;
+    res.render('oauthCallback', {
+        token: accessToken,title:"IP Call"
+    });
+});
+
+router.get('/provider/oauthCallback', (req, res) => {
+    accessToken = req.query.access_token;
+    res.render('oauthCallback', {
+        token: accessToken,title:"IP Call"
+    });
+});
+
+router.get('/payer/crdResponse', (req, res) => {
+    data = JSON.parse(req.query.data);
+    res.render('crdResponse', {
+        title:"CRD Response", 
+        cards: data.cards, 
+        systemActions: data.systemActions
+    });
 });
 
 module.exports = router;

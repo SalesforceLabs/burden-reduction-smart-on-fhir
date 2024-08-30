@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Callback</title>
+</head>
+<body>
+    <script>
+        // Check if the access token is present in the URL fragment
+        if (window.location.hash) {
+            const fragment = window.location.hash.substring(1);
+            const params = new URLSearchParams(fragment);
+            const accessToken = params.get('access_token');
+
+            if (accessToken) {
+                // Send the access token to the server
+                fetch('<%=oauthCallBackUrl%>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ access_token: accessToken }),
+                }).then(response => {
+                    return response.json();
+                }).then(data => {
+                    console.log('Success:', data);
+                    window.location.href = data.redirectUrl;
+                }).catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
