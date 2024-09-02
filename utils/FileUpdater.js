@@ -26,6 +26,52 @@ class FileUpdater {
             throw error;
         }
     }
+
+    static isConfigured(filePath, keys){
+        try {
+            // Read the existing file data
+            //console.log(filePath);
+            const data = fs.readFileSync(filePath, 'utf8');
+
+            // Parse the data as JSON
+            let jsonData = JSON.parse(data);
+
+            // Update the JSON data with the values from the updates object
+            for (const key of keys) {
+                if (jsonData.hasOwnProperty(key) && jsonData[key] == null) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error reading file:', error);
+            throw error;
+        }
+    }
+
+    static getFile(filePath, keys){
+        try {
+            // Read the existing file data
+            const data = fs.readFileSync(filePath, 'utf8');
+
+            // Parse the data as JSON
+            let jsonData = JSON.parse(data);
+            let output = {};
+
+            // Update the JSON data with the values from the updates object
+            for (const key of keys) {
+                if (jsonData.hasOwnProperty(key)) {
+                    output[key] = jsonData[key];
+                }
+            }
+
+            return output;
+        } catch (error) {
+            console.error('Error reading file:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = FileUpdater;

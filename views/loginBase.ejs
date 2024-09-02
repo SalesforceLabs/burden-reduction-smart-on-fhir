@@ -1,4 +1,4 @@
-<div class="text-center center-div" id="providerLogin">
+<div class="text-center center-div" id="baseLogin">
     <div class="container w-25 border py-5">
         <div class="title pb-5">
             <h2 class="font-weight-bold"><%= loginHeader %></h2>
@@ -54,6 +54,7 @@
             .then(data => {
                 if (data.success) {
                     console.log("Payer Configs Updtaed");
+                    console.log(oauthUrl);
                     window.location.href = oauthUrl;
                 } else {
                     console.log("Payer Configs Not Updtaed");

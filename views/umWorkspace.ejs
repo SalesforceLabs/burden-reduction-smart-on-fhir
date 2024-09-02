@@ -1,0 +1,104 @@
+<%- include('header') -%>
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <h1>Select a Utilization Management Operation</h1>
+        <select id="processTypeDropdown" onchange="loadProcessType()">
+            <option value="" class="text-center">-- Select Operation Type --</option>
+            <option value="crd">Coverage Requirement Discovery</option>
+            <option value="dtr">Document Template & Rules</option>
+            <option value="pas">Prior Authorization & Support</option>
+        </select>
+
+        <div id="processTypeContent" class="json-container"></div>
+        <div id="spinner" class="spinner" style="display: none;"></div>
+        <div id="backdrop" class="backdrop" style="display: none;"></div>
+    </div>
+</div>
+<%- include('footer') -%>
+
+<script>
+    function loadProcessType() {
+        const processType = document.getElementById('processTypeDropdown').value;
+        const processTypeContent = document.getElementById('processTypeContent');
+        
+        processTypeContent.classList.remove('active');
+        processTypeContent.innerHTML = '';
+
+        if (processType === 'crd') {
+            processTypeContent.classList.add('active');
+            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Coverage Requirement Dicovery' }) %>`;
+        } else if (processType === 'dtr') {
+            processTypeContent.classList.add('active');
+            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Document Template & Rules' }) %>`;
+        }
+        else if (processType === 'pas') {
+            processTypeContent.classList.add('active');
+            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Prior Authorization & Support' }) %>`;
+        }
+    }
+</script>
+
+<script>
+     function validateAndSubmitJson() {
+         const jsonInput = document.getElementById('jsonInput').value;
+         const validationMessage = document.getElementById('validationMessage');
+         const processType = document.getElementById('processTypeDropdown').value;
+ 
+         try {
+             const parsedJson = JSON.parse(jsonInput);
+             validationMessage.innerHTML = '';
+             callApi({
+                input:parsedJson,
+                processType:processType
+            });
+         } catch (error) {
+             validationMessage.innerHTML = 'Invalid JSON. Please correct it.';
+         }
+     }
+ 
+     function callApi(data) {
+         // Example API call using fetch or axios
+         console.log('API called with data:', data);
+         if (data.processType == 'crd') {
+            invokeCrdApi(data.input);
+         }
+     }
+
+     function invokeCrdApi(data){
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/call-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            if (data.success) {
+                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                // Hide the spinner after receiving the response
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
+ </script>

@@ -8,16 +8,30 @@
         </div>
         <form action="/provider-login" method="POST" class="pt-2">
             <div class="pt-3">
-                <button type="submit" class="btn btn-success rounded-pill">Login to Provider</button>
+                <button type="submit" class="btn btn-primary rounded-pill">Login to Provider</button>
+            </div>
+            <div class="subtext">
+                <% if (providerConfiguredAlready) { %>
+                    <div class="available">
+                        <span class="icon">✔️</span> provider configured successfully
+                    </div>
+                <% } %>
             </div>
         </form>
         <form action="/payer-login" method="POST" class="pt-2">
             <div class="pt-3">
-                <button type="submit" class="btn btn-success rounded-pill">Login to Payer</button>
+                <button type="submit" class="btn btn-primary rounded-pill">Login to Payer</button>
+            </div>
+            <div class="subtext">
+                <% if (payerConfiguredAlready) { %>
+                    <div class="available">
+                        <span class="icon">✔️</span> payer configured successfully
+                    </div>
+                <% } %>
             </div>
         </form>
         <div class="pt-3">
-            <button id="oauthLoginBtn" class="btn btn-primary rounded-pill">Login with Salesforce</button>
+            <button id="enterUMWorkspaceBtn" class="btn btn-primary rounded-pill" <% if (!payerConfiguredAlready || !providerConfiguredAlready) { %> disabled <% } %>>Enter to UM workspace</button>
         </div>
     </div>
 </div>
@@ -25,13 +39,7 @@
 <%- include('footer') -%>
 <script>
     //redirects page to oauth URL using window
-    document.getElementById('oauthLoginBtn').addEventListener('click', function() {
-        const clientId = '<%= process.env.SALESFORCE_CLIENT_ID %>';
-        const redirectUri = '<%= process.env.SALESFORCE_REDIRECT_URI %>';
-        const authUrl = '<%= process.env.SALESFORCE_TOKEN_URL %>';
-        const scope = 'api full';
-
-        const oauthUrl = `${authUrl}?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
-        window.location.href = oauthUrl;
+    document.getElementById('enterUMWorkspaceBtn').addEventListener('click', function() {
+        window.location.href = '/UM-Workspace';
     });
 </script>

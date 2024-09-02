@@ -98,3 +98,35 @@ body {
   backdrop-filter: blur(5px); /* Blur effect */
   z-index: 1000; /* Make sure backdrop is below the spinner */
 }
+
+.subtext {
+  margin-top: 5px;
+  font-size: 14px;
+}
+.available {
+  color: green;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.available .icon {
+  margin-right: 5px;
+}
+
+.json-container {
+  display: none;
+  margin-top: 20px;
+}
+.json-container.active {
+  display: block;
+}
+
+.header-box {
+  background-color: #f4f4f4;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: left;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  width:700px;
+}

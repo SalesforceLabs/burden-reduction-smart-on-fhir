@@ -4,8 +4,9 @@ const fs = require('fs');
 const path = require('path');
 var router = express.Router();
 var bodyParser = require('body-parser');
-var payerConfig = require('./config/payerConfig.json');
+var payerConfigFilePath = path.join(__dirname, 'config/payerConfig.json');
 const fileUpdater = require('./utils/FileUpdater');
+const utils = require('./utils/utils');
 require('dotenv').config();
 
 //Use Section
@@ -32,7 +33,7 @@ router.post('/payer/oauthCallback', (req, res) => {
         instanceUrl : instanceUrl
     })
     .then(() => {
-        console.log('Update complete');
+        console.log('Update complete from payer callback');
         res.json({ success: true, token: accessToken, redirectUrl: redirectUrl});
     })
     .catch(err => console.error('Update failed:', err)); 
@@ -67,7 +68,8 @@ router.post('/updateConfig', (req, res) => {
         baseUrl: baseUrl,
         clientId: clientId,
         callbackUrl: callbackUrl,
-        authUrl : authUrl
+        authUrl : authUrl,
+        instanceUrl : baseUrl
     })
     .then(() => {
         console.log('Update complete');
@@ -77,13 +79,12 @@ router.post('/updateConfig', (req, res) => {
 });
 
 router.post('/call-ip', async (req, res) => {
-    console.log(payerConfig.instanceUrl);
-    const integrationProcedureUrl = path.join(payerConfig.instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL);
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
+    const integrationProcedureUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL);
     const requestDataPath = path.join(__dirname, 'requestData.json');
-    const accessToken = payerConfig.accessToken;
     let requestData = {};
     try {
-        requestData = JSON.parse(fs.readFileSync(requestDataPath, 'utf8'));
+        requestData = req.body.input;
         const response = await axios.post(integrationProcedureUrl, requestData, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -106,10 +107,13 @@ router.post('/call-ip', async (req, res) => {
 
 
 
-
 //Get Section
 router.get('/', function (req, res) {
-    res.render('home', {title:"Login System"});
+    const payerConfigFilePath = path.join(__dirname, `config/payerConfig.json`);
+    const providerConfigFilePath = path.join(__dirname, `config/providerConfig.json`);
+    const isPayerConfigured = fileUpdater.isConfigured(payerConfigFilePath, ["accessToken"]);
+    const isProviderConfigured = true; //fileUpdater.isConfigured(providerConfigFilePath,["accessToken"]);
+    res.render('home', {title:"Login System", providerConfiguredAlready:isProviderConfigured, payerConfiguredAlready:isPayerConfigured});
   });
 
 router.get('/provider-login', (req, res) => {
@@ -154,7 +158,14 @@ router.get('/payer/crdResponse', (req, res) => {
     res.render('crdResponse', {
         title:"CRD Response", 
         cards: data.cards, 
-        systemActions: data.systemActions
+        systemActions: data.systemActions,
+        operationalOutcome: data.operationalOutcome != undefined ? data.operationalOutcome : data.operationOutcome
+    });
+});
+
+router.get('/UM-Workspace', (req, res) => {
+    res.render('umWorkspace',{
+        title:"UM Workspace",
     });
 });
 
