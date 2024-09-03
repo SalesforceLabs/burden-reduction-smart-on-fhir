@@ -82,7 +82,6 @@ router.post('/call-ip', async (req, res) => {
     const {instanceUrl,accessToken, ipType, ipSubtype}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken', 'ipType', 'ipSubtype'],)
     const ipName = ipType+'_'+ipSubtype;
     const integrationProcedureUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE, ipName);
-    console.log(integrationProcedureUrl);
     const requestDataPath = path.join(__dirname, 'requestData.json');
     let requestData = {};
     try {

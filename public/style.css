@@ -25,10 +25,11 @@ body {
 }
 
 .container{
-    box-shadow: 1px 1px 1px lightblue;
     background-color: white;
     border-color: black;
     border-style: double;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
 }
 
 .card {
@@ -166,7 +167,7 @@ th {
 .main-heading {
   font-size: 48px;
   margin-top: 90px;
-  color: #333;
+  color: #0c87b8;
   font-weight: bold ;
 }
 .description {
