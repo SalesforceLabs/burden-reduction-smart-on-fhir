@@ -1,6 +1,20 @@
 var express = require('express');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 var router = express.Router();
+var bodyParser = require('body-parser');
+var payerConfigFilePath = path.join(__dirname, 'config/payerConfig.json');
+const fileUpdater = require('./utils/FileUpdater');
+const utils = require('./utils/utils');
+require('dotenv').config();
 
+//Use Section
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
+
+
+//Post Section
 router.post('/provider-login', (req, res) => {
     res.redirect('/provider-login');
 });
@@ -9,12 +23,227 @@ router.post('/payer-login', (req, res) => {
     res.redirect('/payer-login');
 });
 
+router.post('/payer/oauthCallback', (req, res) => {
+    const accessToken = req.body.access_token;
+    const instanceUrl = req.body.instance_url;
+    const redirectUrl = `/payer/oauthCallback?access_token=${accessToken}`;
+    const filePath = path.join(__dirname, `config/payerConfig.json`);
+    fileUpdater.updateFile(filePath, {
+        accessToken : accessToken,
+        instanceUrl : instanceUrl
+    })
+    .then(() => {
+        console.log('Update complete from payer callback');
+        res.json({ success: true, token: accessToken, redirectUrl: redirectUrl});
+    })
+    .catch(err => console.error('Update failed:', err)); 
+});
+
+router.post('/provider/oauthCallback', (req, res) => {
+    const accessToken = req.body.access_token;
+    const instanceUrl = req.body.instance_url;
+    const redirectUrl = `/provider/oauthCallback?access_token=${accessToken}`;
+    const filePath = path.join(__dirname, `config/providerConfig.json`);
+    fileUpdater.updateFile(filePath, {
+        accessToken : accessToken,
+        instanceUrl : instanceUrl
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true, token: accessToken, redirectUrl: redirectUrl});
+    })
+    .catch(err => console.error('Update failed:', err)); 
+});
+
+router.post('/updateConfig', (req, res) => {
+    const userType = req.body.userType;
+    const baseUrl = req.body.baseUrl;
+    const clientId = req.body.clientId;
+    const callbackUrl = req.body.callbackUrl;
+    const authUrl = path.join(baseUrl,'services/oauth2/authorize');
+    const fileName = (userType == 'payerLogin' ? 'payerConfig.json' : 'providerConfig.json');
+    const filePath = path.join(__dirname, `config/${fileName}`);
+
+    fileUpdater.updateFile(filePath, {
+        baseUrl: baseUrl,
+        clientId: clientId,
+        callbackUrl: callbackUrl,
+        authUrl : authUrl,
+        instanceUrl : baseUrl
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err));       
+});
+
+router.post('/call-ip', async (req, res) => {
+    const {instanceUrl,accessToken, ipType, ipSubtype}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken', 'ipType', 'ipSubtype'],)
+    const ipName = ipType+'_'+ipSubtype;
+    const integrationProcedureUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE, ipName);
+    const requestDataPath = path.join(__dirname, 'requestData.json');
+    let requestData = {};
+    try {
+        requestData = req.body.input;
+        const response = await axios.post(integrationProcedureUrl, requestData, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        //send result back to oauth
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        console.error('Error making call to Integration Procedure:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+router.post('/call-disc-api', async (req, res) => {
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
+    const discoveryApiRequestUrl = path.join(instanceUrl, process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY);
+
+    try {
+        const response = await axios.get(discoveryApiRequestUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        //send result back to oauth
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        console.error('Error making call to Discovery API:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+router.post('/useService', async (req, res) => {
+
+    const filePath = path.join(__dirname, `config/payerConfig.json`);
+    const rowData = req.body;
+    console.log('in use Service: ' + rowData);
+
+    fileUpdater.updateFile(filePath, {
+       ipType : rowData.Type,
+       ipSubtype : rowData.SubType
+    })
+    .then(() => {
+        console.log('Update complete');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err));   
+});
+
+
+
+//Get Section
+router.get('/', function (req, res) {
+    const payerConfigFilePath = path.join(__dirname, `config/payerConfig.json`);
+    const providerConfigFilePath = path.join(__dirname, `config/providerConfig.json`);
+    const isPayerConfigured = fileUpdater.isConfigured(payerConfigFilePath, ["accessToken"]);
+    const isProviderConfigured = fileUpdater.isConfigured(providerConfigFilePath,["accessToken"]);
+    res.render('home', {title:"Login System", providerConfiguredAlready:isProviderConfigured, payerConfiguredAlready:isPayerConfigured});
+  });
+
 router.get('/provider-login', (req, res) => {
     res.render('providerLogin', {title:"Provider Login"});
 });
 
 router.get('/payer-login', (req, res) => {
     res.render('payerLogin', {title:"Payer Login"});
+});
+
+
+//gets executed by the callback from oauth
+router.get('/payer/callback', (req, res) => { 
+    res.render('callback', {
+        oauthCallBackUrl : "/payer/oauthCallback"
+    });
+});
+
+router.get('/provider/callback', (req, res) => { 
+    res.render('callback', {
+        oauthCallBackUrl : "/provider/oauthCallback"
+    });
+});
+
+
+router.get('/payer/oauthCallback', (req, res) => {
+    accessToken = req.query.access_token;
+    res.render('oauthCallback', {
+        token: accessToken,title:"IP Call"
+    });
+});
+
+router.get('/provider/oauthCallback', (req, res) => {
+    accessToken = req.query.access_token;
+    res.render('oauthCallback', {
+        token: accessToken,title:"IP Call"
+    });
+});
+
+router.get('/payer/crdResponse', (req, res) => {
+    data = JSON.parse(req.query.data);
+    res.render('crdResponse', {
+        title:"CRD Response", 
+        cards: data.cards, 
+        systemActions: data.systemActions,
+        operationalOutcome: data.operationalOutcome != undefined ? data.operationalOutcome : data.operationOutcome
+    });
+});
+
+router.get('/UM-Workspace', (req, res) => {
+    res.render('umWorkspace',{
+        title:"UM Workspace",
+    });
+});
+
+router.get('/getTableData', (req, res) => {
+    const columns = req.query.columns ? JSON.parse(req.query.columns) : [];
+    const rows = req.query.rows ? JSON.parse(req.query.rows) : [];
+    res.render('dataTable', { showTable: true, columns, rows }, (err, html) => {
+        if (err) {
+            console.error('Error rendering table:', err);
+            res.status(500).send('Error rendering table.');
+        } else {
+            res.json({ tableHtml: html });
+        }
+    });
+});
+
+router.get('/fetch-field-value', async (req, res) => {
+    try {
+        const entity =  'ServiceInfoResponseAction';
+        const entityId = '1MOSB0000009ZHt4AM';
+        const entityField = 'Context';
+        const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v62.0/sobjects/${entity}/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${providerConfig.accessToken}`
+            }
+        });
+
+        const fieldValue = response.data[entityField]; 
+        //console.log(fieldValue);
+        res.send(fieldValue);
+    } catch (error) {
+        console.error('Error fetching the field value:', error);
+        res.json({ success: false, error: 'Failed to fetch the field value.' });
+    }
 });
 
 module.exports = router;

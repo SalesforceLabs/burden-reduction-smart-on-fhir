@@ -1,7 +1,9 @@
 <%- include('header') -%>
 <% 
         const loginHeader = "Provider Login";
-        const loginSubHeader = "Log in to the Provider Org"
+        const loginSubHeader = "Log in to the Provider Org";
+        const formId = "providerLogin";
+        const formAction = "/providerLoginFormSubmit";
     %>
-<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader }) %>
+<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader, formId : formId }) %>
 <%- include('footer') -%>
