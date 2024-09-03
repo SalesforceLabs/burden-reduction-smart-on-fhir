@@ -169,6 +169,11 @@ router.get('/payer-login', (req, res) => {
 
 
 //gets executed by the callback from oauth
+
+router.get('/order-select-form', (req,res)=>{
+    res.render('orderSelectRequest');
+})
+
 router.get('/payer/callback', (req, res) => { 
     res.render('callback', {
         oauthCallBackUrl : "/payer/oauthCallback"
