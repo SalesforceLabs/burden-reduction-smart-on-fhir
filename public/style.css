@@ -235,3 +235,13 @@ th {
 .homeClass {
   text-align: center;
 }
+
+.container h1 {
+  color : #0c87b8;
+  font-weight: bold;;
+}
+
+select {
+  background-color:#f4f4f4;
+}
+
