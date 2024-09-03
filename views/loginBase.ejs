@@ -7,15 +7,15 @@
         <form id="<%= formId %>"  class="pt-2">
             <div class="form-group">
                 <small class="form-text text-muted text-left">Enter Base URL</small>
-                <input type="url" class="form-control" placeholder="base url" id="baseUrl" name="baseUrl" required>
+                <input type="url" value="<%= defBaseUrl %>" class="form-control" placeholder="base url" id="baseUrl" name="baseUrl" required>
             </div>
             <div class="form-group pt-3">
                 <small class="form-text text-muted text-left">Enter Client Id</small>
-                <input type="password" class="form-control" placeholder="client id" id="clientId" name="clientId" required>
+                <input type="password" value="<%= defClientId %>" class="form-control" placeholder="client id" id="clientId" name="clientId" required>
             </div>
             <div class="form-group pt-3">
                 <small class="form-text text-muted text-left">Enter Callback URL</small>
-                <input type="url" class="form-control" placeholder="callback url" id="callbackUrl" name="callbackUrl" required>
+                <input type="url" value="<%= defCallBackUrl %>" class="form-control" placeholder="callback url" id="callbackUrl" name="callbackUrl" required>
             </div>
             <div class="pt-3">
                 <button type="submit" class="btn btn-success rounded-pill">Get Access Token</button>
