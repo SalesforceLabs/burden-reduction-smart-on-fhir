@@ -24,16 +24,53 @@
         processTypeContent.classList.remove('active');
         processTypeContent.innerHTML = '';
 
-        if (processType === 'crd') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Coverage Requirement Dicovery' }) %>`;
-        } else if (processType === 'dtr') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Document Template & Rules' }) %>`;
+        let label;
+        switch (processType) {
+            case 'crd':
+                label = 'Coverage Requirement Discovery';
+                break;
+            case 'dtr':
+                label = 'Document Template & Rules';
+                break;
+            case 'pas':
+                label = 'Prior Authorization & Support';
+                break;
+            default:
+                label = '';
         }
-        else if (processType === 'pas') {
+        // We will make separate if conditions when we have all the api's in place.
+        if (processType) {
             processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Prior Authorization & Support' }) %>`;
+            processTypeContent.innerHTML = `
+                <div class="json-container active">
+                    <h6>JSON Input for ${label}</h6>
+                    <textarea id="jsonInput" rows="10" cols="150" placeholder="Enter your JSON here..."></textarea>
+                    <br>
+                    <button id="fetchFieldValueButton">Fetch JSON from Provider Org</button>
+                    <button onclick="validateAndSubmitJson()">Submit</button>
+                    <p id="validationMessage" style="color:red;"></p>
+                </div>
+            `;
+
+            document.getElementById('fetchFieldValueButton').addEventListener('click', async function() {
+                try {
+                    var spinner = document.getElementById('spinner');
+                    var backdrop = document.getElementById('backdrop');
+
+                    spinner.style.display = 'block';
+                    backdrop.style.display = 'block';
+
+                    const response = await fetch('/fetch-field-value');
+                    const fieldValue = await response.text();
+                    document.getElementById('jsonInput').value = fieldValue;
+                } catch (error) {
+                    console.error('Error fetching the field value:', error);
+                    alert('Failed to fetch the field value.');
+                }finally{
+                    spinner.style.display = 'none';
+                    backdrop.style.display = 'none';
+                }
+            });
         }
     }
 </script>

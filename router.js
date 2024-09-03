@@ -169,4 +169,26 @@ router.get('/UM-Workspace', (req, res) => {
     });
 });
 
+router.get('/fetch-field-value', async (req, res) => {
+    try {
+        const entity =  'ServiceInfoResponseAction';
+        const entityId = '1MOSB0000009ZHt4AM';
+        const entityField = 'Context';
+        const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v62.0/sobjects/${entity}/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${providerConfig.accessToken}`
+            }
+        });
+
+        const fieldValue = response.data[entityField]; 
+        console.log(fieldValue);
+        res.send(fieldValue);
+    } catch (error) {
+        console.error('Error fetching the field value:', error);
+        res.json({ success: false, error: 'Failed to fetch the field value.' });
+    }
+});
+
+
 module.exports = router;
