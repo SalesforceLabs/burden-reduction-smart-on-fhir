@@ -1,0 +1,330 @@
+<div>
+    <h1>Medication/Service Request</h1>
+    <form onsubmit="return createOrderSelectInput();">
+        <h3><label>Select Patient</label></h3>
+        <label for="patientLabel">Patient:</label>
+        <select name="patient" id="patient-select" onchange="handlePatient()">
+            <option value="">--Please select a patient--</option>
+            <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
+            <option value="001SB00000QmhN4YAJ">Charles Green</option>
+        </select>
+        
+        <hr>
+        <h3><label>Select Medication/Service Request</label></h3>
+        <label for="requestTypelabel">RequestType:</label>
+        <select name="requestType" id="request-type-select" onchange="handleRequestType()">
+            <option value="">--Please select request Type--</option>
+            <option value="medication">Medication</option>
+            <option value="service">Service</option>
+        </select>
+
+        <br/>
+        <br/>
+        
+        <label for="serviceLabel">Service:</label>
+        <select name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled">
+            <option value="">--Please select Service--</option>
+            <option value="617994">MRA Knee Vessels Right</option>
+            <option value="617995">MRA Knee Vessels Left</option>
+        </select>
+
+        <label for="medicationlabel">Medication:</label>
+        <select name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled">
+            <option value="">--Please select Medication--</option>
+            <option value="617993">Amoxicillin 120 MG/ML</option>
+            <option value="617999">Paracetmol 650MG</option>
+        </select>
+        
+        <br/>
+        <br/>
+        
+        <label for="startDatelabel">StartDate:</label>
+        <input type="date" id="startDate" disabled="disabled">
+        <label for="endDatelabel">EndDate:</label>
+        <input type="date" id="endDate" disabled="disabled">
+        
+        <br/>
+        <br/>
+        
+        <label for="quantity">Quantity:</label>
+        <input type="text" id="quantity" name="quantity" oninput="handleQuantity()" disabled="disabled">
+        <hr>
+        <h3><label>Select Practitioner and Location</label></h3>
+        <label for="practitionerLabel">Practitioner:</label>
+        <select name="practitioner" id="practitioner-select" onchange="handlePractitioner()">
+            <option value="">--Please select a practitioner--</option>
+            <option value="001SB00000MNQMvYAP">Practitioner van de Heuvel</option>
+        </select>
+        <label for="locationLabel">Location:</label>
+        <select name="location" id="location-select" onchange="handleLocation()">
+            <option value="">--Please select a Location--</option>
+            <option value="0klSB0000000KjVYAU">Washington, DC metro area</option>
+        </select>
+        <br/>
+        <br/>
+        
+        <input type="submit" id="submit" value="Submit" disabled="disabled">
+    </form>
+</div>
+
+<script>
+    let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+    document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('endDate').valueAsDate = new Date();
+    function handlePatient() {
+        const pieterDetails = JSON.stringify({
+            "resourceType": "Patient",
+            "gender": "Male",
+            "birthDate": "1985-12-23",
+            "subscriberId": "1288992",
+            "active": true,
+            "identifier": [
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+                    "value": "738472983"
+                },
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3"
+                }
+            ],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "van de Heuvel",
+                    "given": [
+                        "Pieter"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ]
+        });
+        const charlesDetails = JSON.stringify({
+            "resourceType": "Patient",
+            "gender": "Male",
+            "birthDate": "1985-12-23",
+            "subscriberId": "",
+            "active": true,
+            "identifier": [],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "Green",
+                    "given": [
+                        "Charles"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ]
+        });
+        const selected = document.getElementById('patient-select').value;
+        if(selected == "001SB00000MNQI5YAP")
+            selectedpatient = pieterDetails;
+        else{
+            selectedpatient = charlesDetails;
+        }
+    }
+
+    function handleRequestType() {
+        selectedRequestType = document.getElementById('request-type-select').value;
+        disableForRequestTypeSelection();
+        if(selectedRequestType == "service"){
+            document.getElementById('service-select').removeAttribute("disabled");
+        }
+        if(selectedRequestType == "medication"){
+            document.getElementById('medication-select').removeAttribute("disabled");            
+        }
+    }
+
+    function handleServiceRequest() {
+        const mraKneeVesselsRight = JSON.stringify({
+            "coding": [
+                {
+                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    "code": "617994"
+                }
+            ],
+            "text": "MRA Knee Vessels Right"
+        });
+        const mraKneeVesselsLeft = JSON.stringify({
+            "coding": [
+                {
+                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    "code": "617995"
+                }
+            ],
+            "text": "MRA Knee Vessels Left"
+        });
+        
+        prepareForMedOrServiceSelection();
+        const selected = document.getElementById('service-select').value;
+        if(selected == "617994")
+            selectedService = mraKneeVesselsRight;
+        else
+            selectedService = mraKneeVesselsLeft;
+    }
+
+    function handleMedicationRequest() {
+        const amoxicillin = JSON.stringify({
+            "coding": [
+                
+            ],
+            "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+        });
+        const paracetmol = JSON.stringify({
+            "coding": [
+                {
+                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    "code": "617999",
+                    "display": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+                }
+            ],
+            "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+        });
+        
+        prepareForMedOrServiceSelection();
+        const selected = document.getElementById('medication-select').value;
+        if(selected == "617993")
+            selectedMedication = amoxicillin;
+        else
+        selectedMedication = paracetmol;
+    }
+
+    function handleQuantity() {
+        selectedQuantity = document.getElementById("quantity").value;
+    }
+    
+    function handlePractitioner() {
+        const pieterPractionerDetails = JSON.stringify({
+            "resourceType": "practitioner",
+            "gender": "Male",
+            "birthDate": "1988-1-23",
+            "id": "1288992",
+            "active": true,
+            "identifier": [
+                {
+                    "use": "npi",
+                    "system": "urn:oid:2.16.528.1.1007.3.1",
+                    "value": "938273695"
+                },
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+                    "value": "129IDH4OP733"
+                }
+            ],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "van de Heuvel",
+                    "given": [
+                        "Practitioner"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ],
+            "additionalInfo": {
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "0648352638",
+                        "use": "mobile"
+                    },
+                    {
+                        "system": "email",
+                        "value": "p.heuvel@gmail.com",
+                        "use": "home"
+                    }
+                ],
+                "address": [
+                    {
+                        "use": "home",
+                        "line": [
+                            "Van Egmondkade 23"
+                        ],
+                        "city": "Amsterdam",
+                        "postalCode": "1024 RJ",
+                        "country": "NLD"
+                    }
+                ]
+            }
+        });
+        const selected = document.getElementById('practitioner-select').value;
+            selectedPractitioner = pieterPractionerDetails;
+    }
+    
+    function handleLocation() {
+        const locationDetails = JSON.stringify({
+            "resourceType": "Location",
+            "status": "active",
+            "name": "Washington, DC metro area",
+            "identifier": [
+                {
+                    "value": "B1-S.F2"
+                },
+                {
+                    "value": "B1-S.F2.1.00"
+                }
+            ]
+        });
+        const selected = document.getElementById('location-select').value;
+        selectedLocation = locationDetails;
+    }
+
+    function createOrderSelectInput(){
+        selectedStartDate = document.getElementById("startDate").value;
+        selectedEndDate = document.getElementById("endDate").value;
+        if(selectedRequestType == "service")
+            alert("Patient Details: "+selectedpatient+"\n"
+                +"Request Type: "+selectedRequestType+"\n"
+                +"Selected Service: "+ selectedService+"\n"
+                +"Selected Start Date: "+selectedStartDate+"\n"
+                +"Selected End Date: "+selectedEndDate+"\n"
+                +"Selected Quantity: "+selectedQuantity+"\n"
+                +"Selected Practitioner: "+selectedPractitioner+"\n"
+                +"Selected Location: "+selectedLocation);
+        else if(selectedRequestType == "medication")
+            alert("Patient Details: "+selectedpatient+"\n"
+                +"Request Type: "+selectedRequestType+"\n"
+                +"Selected Medication: "+ selectedMedication+"\n"
+                +"Selected Start Date: "+selectedStartDate+"\n"
+                +"Selected End Date: "+selectedEndDate+"\n"
+                +"Selected Quantity: "+selectedQuantity+"\n"
+                +"Selected Practitioner: "+selectedPractitioner+"\n"
+                +"Selected Location: "+selectedLocation);
+      }
+
+    function disableForRequestTypeSelection(){
+        selectedService = null;
+        selectedMedication = null;
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = null;
+
+        document.getElementById('medication-select').setAttribute("disabled", "disabled");
+        document.getElementById('service-select').setAttribute("disabled", "disabled");
+        document.getElementById('startDate').setAttribute("disabled", "disabled");
+        document.getElementById('endDate').setAttribute("disabled", "disabled");
+        document.getElementById('quantity').setAttribute("disabled", "disabled");
+        document.getElementById('submit').setAttribute("disabled", "disabled");
+        
+    }
+
+    function prepareForMedOrServiceSelection(){
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = null;
+        document.getElementById('submit').removeAttribute("disabled");
+        document.getElementById('startDate').removeAttribute("disabled")
+        document.getElementById('endDate').removeAttribute("disabled")
+        document.getElementById('quantity').removeAttribute("disabled")
+    }
+
+</script>
