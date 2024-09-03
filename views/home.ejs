@@ -43,6 +43,13 @@
             <h3>UM Workspace</h3>
             <p>Workspace to perform various Utilization Management Operations</p>
             <button onclick="window.location.href='/UM-Workspace'" <% if (!payerConfiguredAlready) { %> disabled <% } %>>Enter Workspace</button>
+            <div class="subtext">
+                <% if (!payerConfiguredAlready) { %>
+                    <div class="notAvailable">
+                        <span class="icon">ⓘ</span> payer not configured
+                    </div>
+                <% } %>
+            </div>
         </div>
     </div>
 </div>

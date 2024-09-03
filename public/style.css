@@ -118,6 +118,15 @@ body {
   margin-right: 5px;
 }
 
+.notAvailable {
+  color: red;
+
+}
+
+.notAvailable .icon {
+  margin-right: 5px;
+}
+
 .json-container {
   display: none;
   margin-top: 20px;
