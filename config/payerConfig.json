@@ -1,8 +1,10 @@
 {
-  "instanceUrl": "https://org3om.test1.my.pc-rnd.salesforce.com",
-  "clientId": "3MVG9l3R9F9mHOGaeV4tRTnokx.tW_hEOUSeyP7dRg_8eQdJUsLa4GYyOsLWlBiZwRY_O9X9zwqry67zs.rQY",
-  "callbackUrl": "http://localhost:3000/payer/callback",
-  "accessToken": "00DSB00000BMlmj!AQEAQKCg0mnd4XxVJp5aMOkl.5oXPQ1j0G2HsDbaAAdqTMWwEdmpWezjFT9HBELo.1pHVnjlcuc1kVbex6xCM_vfNOZeOUdO",
-  "authUrl": "https:/org3om.test1.my.pc-rnd.salesforce.com/services/oauth2/authorize",
-  "baseUrl": "https://org3om.test1.my.pc-rnd.salesforce.com"
+  "instanceUrl": null,
+  "clientId": null,
+  "callbackUrl": null,
+  "accessToken": null,
+  "authUrl": null,
+  "baseUrl": null,
+  "ipType": null,
+  "ipSubtype": null
 }

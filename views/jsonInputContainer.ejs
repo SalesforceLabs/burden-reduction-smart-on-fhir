@@ -1,7 +1,8 @@
 <div class="json-container active">
-    <h6>JSON Input for <%= type %></h6>
+    <h6>JSON Input for <%= type %> using <%= serviceName %></h6>
     <textarea id="jsonInput" rows="10" cols="150" placeholder="Enter your JSON here..."></textarea>
     <br>
+    <button id="fetchFieldValueButton">Fetch JSON from Provider Org</button>
     <button onclick="validateAndSubmitJson()">Submit</button>
     <p id="validationMessage" style="color:red;"></p>
 </div>

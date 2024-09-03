@@ -1,0 +1,35 @@
+<br>
+<% if (showTable && rows.length > 0) { %>
+    <h5>Available Services</h5>
+    <table>
+        <thead>
+            <tr>
+                <% columns.forEach(function(column) { %>
+                    <th><%= column %></th>
+                <% }); %>
+                <th>Action</th> <!-- Extra column for the submit button -->
+            </tr>
+        </thead>
+        <tbody>
+            <% rows.forEach(function(row, index) { %>
+                <tr>
+                    <% columns.forEach(function(column) { %>
+                        <td><%= row[column] %></td>
+                    <% }); %>
+                    <td>
+                        <form id="form-<%= index %>" action="/submit" method="post">
+                            <% columns.forEach(function(column) { %>
+                                <input type="hidden" name="<%= column %>" value="<%= row[column] %>">
+                            <% }); %>
+                            <button type="button" class="submit-btn" onclick="submitRowData(<%= index %>)">Use Service</button>
+                        </form>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+<% } else { %>
+    <div class="no-data">No data available to display.</div>
+<% } %>
+<br>
+

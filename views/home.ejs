@@ -1,15 +1,20 @@
 <%- include('header') -%>
 
-<div class="text-center center-div" id="providerLogin">
-    <div class="container w-25 border py-5">
-        <div class="title pb-5">
-            <h2 class="font-weight-bold">Welcome to Utilization Management Portal</h2>
-            <span>Please Configure Provider and Payer</span>
-        </div>
-        <form action="/provider-login" method="POST" class="pt-2">
-            <div class="pt-3">
-                <button type="submit" class="btn btn-primary rounded-pill">Login to Provider</button>
-            </div>
+<div class="homeClass">
+    <div class="main-heading">
+        Bridge the Gap Between EHR and Payer Systems
+    </div>
+
+    <div class="description">
+        <p>Our portal simplifies healthcare operations by facilitating the exchange of patient data between EHRs and payer systems. This supports critical use cases like Coverage Requirements Discovery (CRD), Documents Templates and Rules (DTR), and Prior Authorization Requests (PAS), as defined by the DaVinci FHIR Burden Reduction Project. By automating these processes, we help reduce administrative burdens, improve efficiency, and enhance patient care.</p>
+    </div>
+
+    <div class="card-container">
+        <!-- Provider Card -->
+        <div class="cardHome">
+            <h3>Providers</h3>
+            <p>Provider Org is the FHIR Client from where we fetch the Clinical Details</p>
+            <button onclick="window.location.href='/provider-login'">Configure Provider</button>
             <div class="subtext">
                 <% if (providerConfiguredAlready) { %>
                     <div class="available">
@@ -17,11 +22,13 @@
                     </div>
                 <% } %>
             </div>
-        </form>
-        <form action="/payer-login" method="POST" class="pt-2">
-            <div class="pt-3">
-                <button type="submit" class="btn btn-primary rounded-pill">Login to Payer</button>
-            </div>
+        </div>
+
+        <!-- Payer Card -->
+        <div class="cardHome">
+            <h3>Payers</h3>
+            <p>Payer Org is the FHIR Server for Service & Medication Requests</p>
+            <button onclick="window.location.href='/payer-login'">Configure Payer</button>
             <div class="subtext">
                 <% if (payerConfiguredAlready) { %>
                     <div class="available">
@@ -29,17 +36,15 @@
                     </div>
                 <% } %>
             </div>
-        </form>
-        <div class="pt-3">
-            <button id="enterUMWorkspaceBtn" class="btn btn-primary rounded-pill" <% if (!payerConfiguredAlready || !providerConfiguredAlready) { %> disabled <% } %>>Enter to UM workspace</button>
+        </div>
+
+        <!-- UM Workspace -->
+        <div class="cardHome">
+            <h3>UM Workspace</h3>
+            <p>Workspace to perform various Utilization Management Operations</p>
+            <button onclick="window.location.href='/UM-Workspace'" <% if (!payerConfiguredAlready) { %> disabled <% } %>>Enter Workspace</button>
         </div>
     </div>
 </div>
 
 <%- include('footer') -%>
-<script>
-    //redirects page to oauth URL using window
-    document.getElementById('enterUMWorkspaceBtn').addEventListener('click', function() {
-        window.location.href = '/UM-Workspace';
-    });
-</script>
