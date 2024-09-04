@@ -281,24 +281,44 @@
     function createOrderSelectInput(){
         selectedStartDate = document.getElementById("startDate").value;
         selectedEndDate = document.getElementById("endDate").value;
-        if(selectedRequestType == "service")
-            alert("Patient Details: "+selectedpatient+"\n"
-                +"Request Type: "+selectedRequestType+"\n"
-                +"Selected Service: "+ selectedService+"\n"
-                +"Selected Start Date: "+selectedStartDate+"\n"
-                +"Selected End Date: "+selectedEndDate+"\n"
-                +"Selected Quantity: "+selectedQuantity+"\n"
-                +"Selected Practitioner: "+selectedPractitioner+"\n"
-                +"Selected Location: "+selectedLocation);
-        else if(selectedRequestType == "medication")
-            alert("Patient Details: "+selectedpatient+"\n"
-                +"Request Type: "+selectedRequestType+"\n"
-                +"Selected Medication: "+ selectedMedication+"\n"
-                +"Selected Start Date: "+selectedStartDate+"\n"
-                +"Selected End Date: "+selectedEndDate+"\n"
-                +"Selected Quantity: "+selectedQuantity+"\n"
-                +"Selected Practitioner: "+selectedPractitioner+"\n"
-                +"Selected Location: "+selectedLocation);
+        let requestStructure;
+        if(selectedRequestType == "service"){
+            fetch('/read-order-select-service-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    requestStructure = data.data;
+                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+                    alert(JSON.stringify(requestStructure));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        else if(selectedRequestType == "medication"){
+            fetch('/read-order-select-medication-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    requestStructure = data.data;
+                    alert(JSON.stringify(requestStructure));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
       }
 
     function disableForRequestTypeSelection(){
