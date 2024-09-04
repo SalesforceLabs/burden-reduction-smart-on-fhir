@@ -1,4 +1,6 @@
-<div>
+<%- include('header', {title: "Medication/Service Request"}) -%>
+
+<div class="text-center center-div" id="baseLogin">
     <h1>Medication/Service Request</h1>
     <form onsubmit="return createOrderSelectInput();">
         <h3><label>Select Patient</label></h3>
@@ -65,8 +67,10 @@
         
         <input type="submit" id="submit" value="Submit" disabled="disabled">
     </form>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div> 
 </div>
-
+<%- include('footer') -%>
 <script>
     let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
     document.getElementById('startDate').valueAsDate = new Date();
@@ -269,7 +273,6 @@
     function createOrderSelectInput(){
         selectedStartDate = document.getElementById("startDate").value;
         selectedEndDate = document.getElementById("endDate").value;
-        let requestStructure;
         if(selectedRequestType == "service"){
             fetch('/read-order-select-service-sample-structure', {
                 method: 'POST',
@@ -280,7 +283,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    requestStructure = data.data;
+                    let requestStructure = data.data;
                     requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
                     let serviceRequest = requestStructure.context.resources.entry[0];
                     serviceRequest.id = "service-"+Date.now();
@@ -290,8 +293,7 @@
                     serviceRequest.entryInfo.quantity.value = selectedQuantity;
                     serviceRequest.entryInfo.occurrence.occurrencePeriod.start = selectedStartDate;
                     serviceRequest.entryInfo.occurrence.occurrencePeriod.end = selectedEndDate;
-                    console.log(JSON.stringify(requestStructure));
-                    alert('a');
+                    invokeCrdApi(requestStructure);
                 }
             })
             .catch(error => {
@@ -308,7 +310,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    requestStructure = data.data;
+                    let requestStructure = data.data;
                     requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
                     let medicationRequest = requestStructure.context.resources.entry[0];
                     medicationRequest.id = "medication-"+Date.now();
@@ -319,13 +321,9 @@
                     medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = selectedMedication.text;
                     
                     medicationRequest.entryInfo.dispenseRequest.quantity.value = selectedQuantity;
-                    alert('b5');
                     medicationRequest.entryInfo.effectiveDosePeriod.start = selectedStartDate;
-                    alert('b6');
                     medicationRequest.entryInfo.effectiveDosePeriod.end = selectedEndDate;
-                    alert('b7');
-                    console.log(JSON.stringify(requestStructure));
-                    alert('b');
+                    invokeCrdApi(requestStructure);
                 }
             })
             .catch(error => {
@@ -359,5 +357,48 @@
         document.getElementById('endDate').removeAttribute("disabled")
         document.getElementById('quantity').removeAttribute("disabled")
     }
+
+    function invokeCrdApi(data){
+        console.log(JSON.stringify(data));
+        alert('a1');
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/invoke-order-echo-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            if (data.success) {
+                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                // Hide the spinner after receiving the response
+                console.log(data.data);
+                alert('a2');
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.log('Error:', error);
+            alert('a3');
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
 
 </script>
