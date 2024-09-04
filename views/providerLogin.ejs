@@ -4,6 +4,9 @@
         const loginSubHeader = "Log in to the Provider Org";
         const formId = "providerLogin";
         const formAction = "/providerLoginFormSubmit";
+        const defBaseUrl = "https://patch1com.test1.my.pc-rnd.salesforce.com";
+        const defCallBackUrl = "http://localhost:3000/provider/callback";
+        const defClientId ="3MVG9l3R9F9mHOGapBLQwTlcrnxQAIegrFJlV_LSf4nYtRHFMWFVURJajdjwyIFu8Ei7ttNx_RvwjospLWrRC";
     %>
-<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader, formId : formId }) %>
+<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader, formId : formId, defBaseUrl : defBaseUrl, defCallBackUrl : defCallBackUrl, defClientId : defClientId }) %>
 <%- include('footer') -%>
