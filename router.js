@@ -106,6 +106,19 @@ router.post('/call-ip', async (req, res) => {
     }
 });
 
+router.post('/read-order-select-medication-sample-structure', async (req, res) => {
+    var sampleMedicationFilePath = path.join(__dirname, 'config/orderSelectMedicationRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleMedicationFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-order-select-service-sample-structure', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/orderSelectServiceRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
+
 router.post('/call-disc-api', async (req, res) => {
     const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
     const discoveryApiRequestUrl = path.join(instanceUrl, process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY);
