@@ -72,6 +72,18 @@ class FileUpdater {
             throw error;
         }
     }
+
+    static getFile(filePath){
+        try {
+            // Read the existing file data
+            const data = fs.readFileSync(filePath, 'utf8');
+            // Parse the data as JSON
+            return JSON.parse(data);
+        } catch (error) {
+            console.error('Error reading file:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = FileUpdater;

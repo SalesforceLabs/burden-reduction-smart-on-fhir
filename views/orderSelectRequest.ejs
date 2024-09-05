@@ -1,9 +1,11 @@
-<div>
+<%- include('header', {title: "Medication/Service Request"}) -%>
+
+<div class="text-center center-div" id="baseLogin">
     <h1>Medication/Service Request</h1>
     <form onsubmit="return createOrderSelectInput();">
         <h3><label>Select Patient</label></h3>
         <label for="patientLabel">Patient:</label>
-        <select name="patient" id="patient-select" onchange="handlePatient()">
+        <select name="patient" id="patient-select" onchange="handlePatient()" required>
             <option value="">--Please select a patient--</option>
             <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
             <option value="001SB00000QmhN4YAJ">Charles Green</option>
@@ -12,7 +14,7 @@
         <hr>
         <h3><label>Select Medication/Service Request</label></h3>
         <label for="requestTypelabel">RequestType:</label>
-        <select name="requestType" id="request-type-select" onchange="handleRequestType()">
+        <select name="requestType" id="request-type-select" onchange="handleRequestType()" required>
             <option value="">--Please select request Type--</option>
             <option value="medication">Medication</option>
             <option value="service">Service</option>
@@ -22,14 +24,14 @@
         <br/>
         
         <label for="serviceLabel">Service:</label>
-        <select name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled">
+        <select name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled" required>
             <option value="">--Please select Service--</option>
             <option value="617994">MRA Knee Vessels Right</option>
             <option value="617995">MRA Knee Vessels Left</option>
         </select>
 
         <label for="medicationlabel">Medication:</label>
-        <select name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled">
+        <select name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled" required>
             <option value="">--Please select Medication--</option>
             <option value="617993">Amoxicillin 120 MG/ML</option>
             <option value="617999">Paracetmol 650MG</option>
@@ -65,12 +67,15 @@
         
         <input type="submit" id="submit" value="Submit" disabled="disabled">
     </form>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div> 
 </div>
-
+<%- include('footer') -%>
 <script>
     let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
     document.getElementById('startDate').valueAsDate = new Date();
     document.getElementById('endDate').valueAsDate = new Date();
+    document.getElementById('quantity').value = 0;
     function handlePatient() {
         const pieterDetails = JSON.stringify({
             "resourceType": "Patient",
@@ -142,24 +147,16 @@
     }
 
     function handleServiceRequest() {
-        const mraKneeVesselsRight = JSON.stringify({
-            "coding": [
-                {
-                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
-                    "code": "617994"
-                }
-            ],
-            "text": "MRA Knee Vessels Right"
-        });
-        const mraKneeVesselsLeft = JSON.stringify({
-            "coding": [
-                {
-                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
-                    "code": "617995"
-                }
-            ],
-            "text": "MRA Knee Vessels Left"
-        });
+        const mraKneeVesselsRight = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617994",
+            text: "MRA Knee Vessels Right"
+        };
+        const mraKneeVesselsLeft = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617995",
+            text: "MRA Knee Vessels Left"
+        };
         
         prepareForMedOrServiceSelection();
         const selected = document.getElementById('service-select').value;
@@ -170,22 +167,17 @@
     }
 
     function handleMedicationRequest() {
-        const amoxicillin = JSON.stringify({
-            "coding": [
-                
-            ],
-            "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
-        });
-        const paracetmol = JSON.stringify({
-            "coding": [
-                {
-                    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
-                    "code": "617999",
-                    "display": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
-                }
-            ],
-            "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
-        });
+        const amoxicillin = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617993",
+            text: "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+        };
+
+        const paracetmol = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617999",
+            text: "Paracetmol 620 MG"
+        };
         
         prepareForMedOrServiceSelection();
         const selected = document.getElementById('medication-select').value;
@@ -196,7 +188,7 @@
     }
 
     function handleQuantity() {
-        selectedQuantity = document.getElementById("quantity").value;
+        selectedQuantity = Number(document.getElementById("quantity").value);
     }
     
     function handlePractitioner() {
@@ -281,24 +273,63 @@
     function createOrderSelectInput(){
         selectedStartDate = document.getElementById("startDate").value;
         selectedEndDate = document.getElementById("endDate").value;
-        if(selectedRequestType == "service")
-            alert("Patient Details: "+selectedpatient+"\n"
-                +"Request Type: "+selectedRequestType+"\n"
-                +"Selected Service: "+ selectedService+"\n"
-                +"Selected Start Date: "+selectedStartDate+"\n"
-                +"Selected End Date: "+selectedEndDate+"\n"
-                +"Selected Quantity: "+selectedQuantity+"\n"
-                +"Selected Practitioner: "+selectedPractitioner+"\n"
-                +"Selected Location: "+selectedLocation);
-        else if(selectedRequestType == "medication")
-            alert("Patient Details: "+selectedpatient+"\n"
-                +"Request Type: "+selectedRequestType+"\n"
-                +"Selected Medication: "+ selectedMedication+"\n"
-                +"Selected Start Date: "+selectedStartDate+"\n"
-                +"Selected End Date: "+selectedEndDate+"\n"
-                +"Selected Quantity: "+selectedQuantity+"\n"
-                +"Selected Practitioner: "+selectedPractitioner+"\n"
-                +"Selected Location: "+selectedLocation);
+        if(selectedRequestType == "service"){
+            fetch('/read-order-select-service-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let requestStructure = data.data;
+                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+                    let serviceRequest = requestStructure.context.resources.entry[0];
+                    serviceRequest.id = "service-"+Date.now();
+                    serviceRequest.entryInfo.code.text = selectedService.text;
+                    serviceRequest.entryInfo.code.coding[0].system = selectedService.system;
+                    serviceRequest.entryInfo.code.coding[0].code = selectedService.code;
+                    serviceRequest.entryInfo.quantity.value = selectedQuantity;
+                    serviceRequest.entryInfo.occurrence.occurrencePeriod.start = selectedStartDate;
+                    serviceRequest.entryInfo.occurrence.occurrencePeriod.end = selectedEndDate;
+                    invokeCrdApi(requestStructure);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        else if(selectedRequestType == "medication"){
+            fetch('/read-order-select-medication-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let requestStructure = data.data;
+                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+                    let medicationRequest = requestStructure.context.resources.entry[0];
+                    medicationRequest.id = "medication-"+Date.now();
+                    
+                    medicationRequest.entryInfo.medicationCodeableConcept.text = selectedMedication.text;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].system = selectedMedication.system;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].code = selectedMedication.code;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = selectedMedication.text;
+                    
+                    medicationRequest.entryInfo.dispenseRequest.quantity.value = selectedQuantity;
+                    medicationRequest.entryInfo.effectiveDosePeriod.start = selectedStartDate;
+                    medicationRequest.entryInfo.effectiveDosePeriod.end = selectedEndDate;
+                    invokeCrdApi(requestStructure);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
       }
 
     function disableForRequestTypeSelection(){
@@ -306,7 +337,7 @@
         selectedMedication = null;
         selectedStartDate = null;
         selectedEndDate = null;
-        selectedQuantity = null;
+        selectedQuantity = 0;
 
         document.getElementById('medication-select').setAttribute("disabled", "disabled");
         document.getElementById('service-select').setAttribute("disabled", "disabled");
@@ -320,11 +351,54 @@
     function prepareForMedOrServiceSelection(){
         selectedStartDate = null;
         selectedEndDate = null;
-        selectedQuantity = null;
+        selectedQuantity = 0;
         document.getElementById('submit').removeAttribute("disabled");
         document.getElementById('startDate').removeAttribute("disabled")
         document.getElementById('endDate').removeAttribute("disabled")
         document.getElementById('quantity').removeAttribute("disabled")
     }
+
+    function invokeCrdApi(data){
+        console.log(JSON.stringify(data));
+        alert('a1');
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/invoke-order-echo-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            if (data.success) {
+                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                // Hide the spinner after receiving the response
+                console.log(data.data);
+                alert('a2');
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.log('Error:', error);
+            alert('a3');
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
 
 </script>
