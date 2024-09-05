@@ -257,16 +257,12 @@ router.get('/provider/callback', (req, res) => {
 
 router.get('/payer/oauthCallback', (req, res) => {
     accessToken = req.query.access_token;
-    res.render('oauthCallback', {
-        token: accessToken,title:"IP Call"
-    });
+    res.redirect('/');
 });
 
 router.get('/provider/oauthCallback', (req, res) => {
     accessToken = req.query.access_token;
-    res.render('oauthCallback', {
-        token: accessToken,title:"IP Call"
-    });
+    res.redirect('/');
 });
 
 router.get('/payer/crdResponse', (req, res) => {
