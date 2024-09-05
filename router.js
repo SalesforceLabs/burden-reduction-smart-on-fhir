@@ -55,6 +55,37 @@ router.post('/provider/oauthCallback', (req, res) => {
     .catch(err => console.error('Update failed:', err)); 
 });
 
+router.post('/fetchData', async (req, res) => {
+
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
+    const input = req.body;
+
+    const subApiString = 'services/data/v62.0/search?q=' + utils.makeSoslQuery(input);
+    const apiString = path.join(instanceUrl,subApiString);
+
+    const apiUrl  = encodeURI(apiString);
+    try {
+        const response = await axios.get(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        //send result back to oauth
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        console.error('Error making call SOSL', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+
+});
+
 router.post('/updateConfig', (req, res) => {
     const userType = req.body.userType;
     const baseUrl = req.body.baseUrl;
