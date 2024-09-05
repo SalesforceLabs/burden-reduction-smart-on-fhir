@@ -14,7 +14,7 @@ app.use('/assets',express.static(path.join(__dirname, 'public/assets')));
 app.use('/utils',express.static(path.join(__dirname, 'utils')));
 
 
-appInitializer.clearConfigs().then(() => {
+appInitializer.initialize().then(() => {
   app.listen(port, () => {
       console.log(`SF-FHIR-APP listening on port ${port}`);
   });

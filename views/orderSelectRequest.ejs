@@ -2,7 +2,7 @@
 
 <div class="text-center center-div" id="baseLogin">
     <h1>Medication/Service Request</h1>
-    <form onsubmit="return createOrderSelectInput();">
+    <form onsubmit="return createOrderSelectInput(event);">
         <h3><label>Select Patient</label></h3>
         <label for="patientLabel">Patient:</label>
         <select name="patient" id="patient-select" onchange="handlePatient()" required>
@@ -271,6 +271,8 @@
     }
 
     function createOrderSelectInput(){
+        event.preventDefault(); 
+
         selectedStartDate = document.getElementById("startDate").value;
         selectedEndDate = document.getElementById("endDate").value;
         if(selectedRequestType == "service"){
@@ -330,6 +332,8 @@
                 console.error('Error:', error);
             });
         }
+
+        return false;
       }
 
     function disableForRequestTypeSelection(){
@@ -360,7 +364,7 @@
 
     function invokeCrdApi(data){
         console.log(JSON.stringify(data));
-        alert('a1');
+
         var spinner = document.getElementById('spinner');
         var backdrop = document.getElementById('backdrop');
 
@@ -374,27 +378,28 @@
                 'Content-Type': 'application/json'
             },
             body : JSON.stringify({
-                input : data
+                input : data,
+                ipType : "HlsClinicalDecisionSupport",
+                ipSubtype: "ProcessOrderEcho"
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('a', response);
+            alert("a");
+            
+            return response.json()})
         .then(data => {
-            const responseContainer = document.getElementById('responseContainer');
             if (data.success) {
-                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
                 // Hide the spinner after receiving the response
-                console.log(data.data);
-                alert('a2');
                 spinner.style.display = 'none';
                 backdrop.style.display = 'none';
+                alert(JSON.stringify(data.data));
                 window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
-            } else {
-                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
-            }
+            } 
         })
         .catch(error => {
             console.log('Error:', error);
-            alert('a3');
+      
             // Hide the spinner after receiving the response
             spinner.style.display = 'none';
             backdrop.style.display = 'none';
