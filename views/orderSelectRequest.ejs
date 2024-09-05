@@ -383,20 +383,19 @@
                 ipSubtype: "ProcessOrderEcho"
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('a', response);
+            alert("a");
+            
+            return response.json()})
         .then(data => {
-            const responseContainer = document.getElementById('responseContainer');
             if (data.success) {
-                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
                 // Hide the spinner after receiving the response
-                console.log(data.data);
-
                 spinner.style.display = 'none';
                 backdrop.style.display = 'none';
+                alert(JSON.stringify(data.data));
                 window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
-            } else {
-                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
-            }
+            } 
         })
         .catch(error => {
             console.log('Error:', error);
