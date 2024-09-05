@@ -196,11 +196,13 @@ router.post('/fetchData', async (req, res) => {
 
     const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
     const input = req.body;
-    const subApiString = `services/data/v62.0/search?q=FIND+%7B${input.name}%2A%7D+IN+ALL+FIELDS+RETURNING+Account+%28Id%2C+Name%29`;
-    const apiString = path.join(instanceUrl,subApiString);
 
+    const subApiString = 'services/data/v62.0/search?q=' + utils.makeSoslQuery(input);
+    const apiString = path.join(instanceUrl,subApiString);
+    
+    const apiUrl  = encodeURI(apiString);
     try {
-        const response = await axios.get(apiString, {
+        const response = await axios.get(apiUrl, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
@@ -288,8 +290,11 @@ router.get('/payer/crdResponse', (req, res) => {
 
 router.get('/UM-Workspace', (req, res) => {
     res.render('umWorkspace',{
-        title:"UM Workspace",
+        title:"UM Workspace"
     });
+    // res.render('typeAheadUse',{
+    //     title:"UM Workspace"
+    // });
 });
 
 router.get('/getTableData', (req, res) => {
