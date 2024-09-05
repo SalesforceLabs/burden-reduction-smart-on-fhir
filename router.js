@@ -121,13 +121,10 @@ router.post('/read-order-select-service-sample-structure', async (req, res) => {
 router.post('/invoke-order-echo-ip', async (req, res) => {
     // We know the type - everything. I see when i hit the request again and again payerConfig.json is turing in null values.
     // Understand why this is happening and fix it.
-    console.log('r1');
-    const {instanceUrl,accessToken, ipType, ipSubtype}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken', 'ipType', 'ipSubtype'],)
-    console.log('r2'+instanceUrl+accessToken);
-    const ipName = ipType+'_'+ipSubtype;
-    alert('r3'+ipName);
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
+    const ipName = req.body.ipType+'_'+req.body.ipSubtype;
+    //const ipName = ipType+'_'+ipSubtype;
     const integrationProcedureUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE, ipName);
-    alert('r4'+integrationProcedureUrl);
     try {
         const response = await axios.post(integrationProcedureUrl, req.body.input, {
             headers: {
@@ -142,7 +139,6 @@ router.post('/invoke-order-echo-ip', async (req, res) => {
         });
     } catch (error) {
         console.log('Error making call to Integration Procedure:', error);
-        alert('a');
         res.status(500).json({
             success: false,
             error: error.message
