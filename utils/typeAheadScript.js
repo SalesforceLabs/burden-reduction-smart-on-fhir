@@ -1,4 +1,3 @@
-
 async function  fetchData(input) {
 
     const query = input.query;
