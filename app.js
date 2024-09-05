@@ -11,6 +11,7 @@ app.use('/', router);
 app.set('view engine','ejs');
 app.use('/static',express.static(path.join(__dirname, 'public')));
 app.use('/assets',express.static(path.join(__dirname, 'public/assets')));
+app.use('/utils',express.static(path.join(__dirname, 'utils')));
 
 
 appInitializer.clearConfigs().then(() => {
