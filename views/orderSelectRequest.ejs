@@ -2,7 +2,7 @@
 
 <div class="text-center center-div" id="baseLogin">
     <h1>Medication/Service Request</h1>
-    <form onsubmit="return createOrderSelectInput();">
+    <form onsubmit="return createOrderSelectInput(event);">
         <h3><label>Select Patient</label></h3>
         <label for="patientLabel">Patient:</label>
         <select name="patient" id="patient-select" onchange="handlePatient()" required>
@@ -271,6 +271,8 @@
     }
 
     function createOrderSelectInput(){
+        event.preventDefault(); 
+
         selectedStartDate = document.getElementById("startDate").value;
         selectedEndDate = document.getElementById("endDate").value;
         if(selectedRequestType == "service"){
@@ -330,6 +332,8 @@
                 console.error('Error:', error);
             });
         }
+
+        return false;
       }
 
     function disableForRequestTypeSelection(){
@@ -360,7 +364,7 @@
 
     function invokeCrdApi(data){
         console.log(JSON.stringify(data));
-        alert('a1');
+
         var spinner = document.getElementById('spinner');
         var backdrop = document.getElementById('backdrop');
 
@@ -395,7 +399,7 @@
         })
         .catch(error => {
             console.log('Error:', error);
-            alert('a3');
+      
             // Hide the spinner after receiving the response
             spinner.style.display = 'none';
             backdrop.style.display = 'none';
