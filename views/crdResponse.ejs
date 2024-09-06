@@ -1,9 +1,11 @@
 <%- include('header') -%>
 
-    <div class="cardContainer">
-        <div class="header-box">
-            <h2 class="font-weight-bold">Coverage Requirement Discovery Responses</h2>
+    <div class="pt-5 mt-5">
+        <div class="row justify-content-center">
+            <h2 class="heading-style">Coverage Requirement Discovery Responses</h2>    
         </div>
+    </div>
+    <div class="cardContainer">
         <% if (operationalOutcome.issue[0].severity != 'error') { %>
             <% cards.forEach(function(card, index) { const action=systemActions[index]; // Get corresponding systemAction
                 const modalId='modal-' + index; // Unique ID for each modal %>
