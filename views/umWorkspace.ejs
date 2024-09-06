@@ -1,15 +1,22 @@
 <%- include('header') -%>
 <div class="text-center center-div" id="baseLogin">
     <div class="container w-45 border py-5">
-        <h1>Select a Utilization Management Operation</h1>
+        <h1 class="heading-style">Select a Utilization Management Operation</h1>
         <br>
-        <select id="processTypeDropdown" onchange="loadProcessType()">
-            <option value="" class="text-center">-- Select Operation Type --</option>
-            <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
-            <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
-            <option value="pas" title="Streamline the prior authorization process, reducing turnaround times and administrative costs.">Prior Authorization & Support</option>
-        </select>
-
+        <form>
+            <div class="row">
+                <div class="col"></div>
+              <div class="col">
+                <select class="form-control" id="processTypeDropdown" onchange="loadProcessType()">
+                    <option value="" class="text-center">-- Select Operation Type --</option>
+                    <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
+                    <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
+                    <option value="pas" title="Streamline the prior authorization process, reducing turnaround times and administrative costs.">Prior Authorization & Support</option>
+                </select>
+               </div>
+               <div class="col"></div>
+            </div>
+        </form>
         <br>
         <div id="tableContainer" style="display: none;"></div>
         <div id="processTypeContent" class="json-container"></div>
