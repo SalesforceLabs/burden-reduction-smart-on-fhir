@@ -12,7 +12,7 @@
             </div>
             <div class="form-group col-md-6">
                 <select class="form-control" name="patient" id="patient-select" onchange="handlePatient()" required>
-                    <option value="">--Please select a patient--</option>
+                    <option selected>Choose...</option>
                     <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
                     <option value="001SB00000QmhN4YAJ">Charles Green</option>
                 </select>
@@ -27,7 +27,7 @@
                 <div class="col">
                     <span>RequestType</span>
                     <select class="form-control" name="requestType" id="request-type-select" onchange="handleRequestType()" required>
-                        <option value="">--Please select request Type--</option>
+                        <option selected>Choose...</option>
                         <option value="medication">Medication</option>
                         <option value="service">Service</option>
                     </select>
@@ -35,7 +35,7 @@
                 <div class="col">
                     <span>Service</span>
                     <select class="form-control" name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled" required>
-                        <option value="">--Please select Service--</option>
+                        <option selected>Choose...</option>
                         <option value="617994">MRA Knee Vessels Right</option>
                         <option value="617995">MRA Knee Vessels Left</option>
                     </select>
@@ -43,7 +43,7 @@
                 <div class="col">
                     <span>Medication</span>
                     <select class="form-control" name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled" required>
-                        <option value="">--Please select Medication--</option>
+                        <option selected>Choose...</option>
                         <option value="617993">Amoxicillin 120 MG/ML</option>
                         <option value="617999">Paracetmol 650MG</option>
                     </select>
@@ -73,14 +73,14 @@
                 <div class="col">
                     <span>Practitioner</span>
                     <select class="form-control" name="practitioner" id="practitioner-select" onchange="handlePractitioner()" required>
-                        <option value="">--Please select a practitioner--</option>
+                        <option selected>Choose...</option>
                         <option value="001SB00000MNQMvYAP">Practitioner van de Heuvel</option>
                     </select>
                 </div>
                 <div class="col">
                     <span>Location</span>
                     <select class="form-control" name="location" id="location-select" onchange="handleLocation()">
-                        <option value="">--Please select a Location--</option>
+                        <option selected>Choose...</option>
                         <option value="0klSB0000000KjVYAU">Washington, DC metro area</option>
                     </select>
                 </div>
