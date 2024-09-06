@@ -1,4 +1,5 @@
 const fs = require('fs');
+const InitializeApp = require('./InitilalizeApp');
 
 class FileUpdater {
     static async updateFile(filePath, updates) {
@@ -27,7 +28,7 @@ class FileUpdater {
         }
     }
 
-    static isConfigured(filePath, keys){
+    static async isConfigured(filePath, keys){
         try {
             // Read the existing file data
             //console.log(filePath);
@@ -41,6 +42,11 @@ class FileUpdater {
                 if (jsonData.hasOwnProperty(key) && jsonData[key] == null) {
                     return false;
                 }
+            }
+
+            if(keys.includes('accessToken') && keys.includes('instanceUrl')) {
+                const isActive = await InitializeApp.isAccessTokenActive({accessToken:jsonData.accessToken, instanceUrl:jsonData.instanceUrl});
+                if(!isActive) return false;
             }
 
             return true;

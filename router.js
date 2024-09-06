@@ -219,11 +219,11 @@ router.post('/useService', async (req, res) => {
 
 
 //Get Section
-router.get('/', function (req, res) {
+router.get('/', async function (req, res) {
     const payerConfigFilePath = path.join(__dirname, `config/payerConfig.json`);
     const providerConfigFilePath = path.join(__dirname, `config/providerConfig.json`);
-    const isPayerConfigured = fileUpdater.isConfigured(payerConfigFilePath, ["accessToken"]);
-    const isProviderConfigured = fileUpdater.isConfigured(providerConfigFilePath,["accessToken"]);
+    const isPayerConfigured = await fileUpdater.isConfigured(payerConfigFilePath, ["accessToken", "instanceUrl"]);
+    const isProviderConfigured = await fileUpdater.isConfigured(providerConfigFilePath,["accessToken", "instanceUrl"]);
     res.render('home', {title:"Login System", providerConfiguredAlready:isProviderConfigured, payerConfiguredAlready:isPayerConfigured});
   });
 
