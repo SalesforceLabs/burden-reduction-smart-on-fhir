@@ -1,0 +1,426 @@
+<%- include('header', {title: "Medication/Service Request"}) -%>
+
+<div class="center-div">
+    <div class="container w-80 border py-3">
+        <div class="text-center title pb-2">
+            <h2 class="heading-style">Medication/Service Request</h2>
+            <span>Select a Medication/Service to verify its coverage.</span>
+        </div>
+        <form onsubmit="return createOrderSelectInput(event);">
+            <div class="form-group">
+                <h3 class="font-weight-bold">Patient Details</h3>
+            </div>
+            <div class="form-group col-md-6">
+                <select class="form-control" name="patient" id="patient-select" onchange="handlePatient()" required>
+                    <option selected>Choose...</option>
+                    <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
+                    <option value="001SB00000QmhN4YAJ">Charles Green</option>
+                </select>
+            </div>
+        
+            <hr/>
+            <div class="form-group">
+                <h3>Medication/Service Request</h3>
+            </div>
+
+            <div class="row pb-4">
+                <div class="col">
+                    <span>RequestType</span>
+                    <select class="form-control" name="requestType" id="request-type-select" onchange="handleRequestType()" required>
+                        <option selected>Choose...</option>
+                        <option value="medication">Medication</option>
+                        <option value="service">Service</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <span>Service</span>
+                    <select class="form-control" name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled" required>
+                        <option selected>Choose...</option>
+                        <option value="617994">MRA Knee Vessels Right</option>
+                        <option value="617995">MRA Knee Vessels Left</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <span>Medication</span>
+                    <select class="form-control" name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled" required>
+                        <option selected>Choose...</option>
+                        <option value="617993">Amoxicillin 120 MG/ML</option>
+                        <option value="617999">Paracetmol 650MG</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row pb-2">
+                <div class="col">
+                    <span>StartDate</span>
+                    <input class="form-control" type="date" id="startDate" disabled="disabled">
+                </div>
+                <div class="col">
+                    <span>EndDate</span>
+                    <input class="form-control" type="date" id="endDate" disabled="disabled">            
+                </div>
+                <div class="col">
+                    <span>Quantity</span>
+                    <input class="form-control" type="text" id="quantity" name="quantity" oninput="handleQuantity()" disabled="disabled">
+                </div>
+            </div>
+        
+            <hr>
+            <div class="form-group">
+                <h3>Practitioner and Location Details</h3>
+            </div>
+            <div class="row pb-4">
+                <div class="col">
+                    <span>Practitioner</span>
+                    <select class="form-control" name="practitioner" id="practitioner-select" onchange="handlePractitioner()" required>
+                        <option selected>Choose...</option>
+                        <option value="001SB00000MNQMvYAP">Practitioner van de Heuvel</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <span>Location</span>
+                    <select class="form-control" name="location" id="location-select" onchange="handleLocation()">
+                        <option selected>Choose...</option>
+                        <option value="0klSB0000000KjVYAU">Washington, DC metro area</option>
+                    </select>
+                </div>
+            </div>
+            <div class="text-center">
+                <input class="btn btn-primary" type="submit" id="submit" value="Submit" disabled="disabled">
+            </div>
+            </form>
+        
+        <div id="spinner" class="spinner" style="display: none;"></div>
+        <div id="backdrop" class="backdrop" style="display: none;"></div> 
+    </div>
+</div>
+<%- include('footer') -%>
+<script>
+    let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+    document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('endDate').valueAsDate = new Date();
+    document.getElementById('quantity').value = 0;
+    function handlePatient() {
+        const pieterDetails = JSON.stringify({
+            "resourceType": "Patient",
+            "gender": "Male",
+            "birthDate": "1985-12-23",
+            "subscriberId": "1288992",
+            "active": true,
+            "identifier": [
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+                    "value": "738472983"
+                },
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3"
+                }
+            ],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "van de Heuvel",
+                    "given": [
+                        "Pieter"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ]
+        });
+        const charlesDetails = JSON.stringify({
+            "resourceType": "Patient",
+            "gender": "Male",
+            "birthDate": "1985-12-23",
+            "subscriberId": "",
+            "active": true,
+            "identifier": [],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "Green",
+                    "given": [
+                        "Charles"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ]
+        });
+        const selected = document.getElementById('patient-select').value;
+        if(selected == "001SB00000MNQI5YAP")
+            selectedpatient = pieterDetails;
+        else{
+            selectedpatient = charlesDetails;
+        }
+    }
+
+    function handleRequestType() {
+        selectedRequestType = document.getElementById('request-type-select').value;
+        disableForRequestTypeSelection();
+        if(selectedRequestType == "service"){
+            document.getElementById('service-select').removeAttribute("disabled");
+        }
+        if(selectedRequestType == "medication"){
+            document.getElementById('medication-select').removeAttribute("disabled");            
+        }
+    }
+
+    function handleServiceRequest() {
+        const mraKneeVesselsRight = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617994",
+            text: "MRA Knee Vessels Right"
+        };
+        const mraKneeVesselsLeft = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617995",
+            text: "MRA Knee Vessels Left"
+        };
+        
+        prepareForMedOrServiceSelection();
+        const selected = document.getElementById('service-select').value;
+        if(selected == "617994")
+            selectedService = mraKneeVesselsRight;
+        else
+            selectedService = mraKneeVesselsLeft;
+    }
+
+    function handleMedicationRequest() {
+        const amoxicillin = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617993",
+            text: "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+        };
+
+        const paracetmol = {
+            system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+            code: "617999",
+            text: "Paracetmol 620 MG"
+        };
+        
+        prepareForMedOrServiceSelection();
+        const selected = document.getElementById('medication-select').value;
+        if(selected == "617993")
+            selectedMedication = amoxicillin;
+        else
+        selectedMedication = paracetmol;
+    }
+
+    function handleQuantity() {
+        selectedQuantity = Number(document.getElementById("quantity").value);
+    }
+    
+    function handlePractitioner() {
+        const pieterPractionerDetails = JSON.stringify({
+            "resourceType": "practitioner",
+            "gender": "Male",
+            "birthDate": "1988-1-23",
+            "id": "1288992",
+            "active": true,
+            "identifier": [
+                {
+                    "use": "npi",
+                    "system": "urn:oid:2.16.528.1.1007.3.1",
+                    "value": "938273695"
+                },
+                {
+                    "use": "usual",
+                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+                    "value": "129IDH4OP733"
+                }
+            ],
+            "name": [
+                {
+                    "use": "usual",
+                    "family": "van de Heuvel",
+                    "given": [
+                        "Practitioner"
+                    ],
+                    "suffix": [
+                        "MSc"
+                    ]
+                }
+            ],
+            "additionalInfo": {
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "0648352638",
+                        "use": "mobile"
+                    },
+                    {
+                        "system": "email",
+                        "value": "p.heuvel@gmail.com",
+                        "use": "home"
+                    }
+                ],
+                "address": [
+                    {
+                        "use": "home",
+                        "line": [
+                            "Van Egmondkade 23"
+                        ],
+                        "city": "Amsterdam",
+                        "postalCode": "1024 RJ",
+                        "country": "NLD"
+                    }
+                ]
+            }
+        });
+        const selected = document.getElementById('practitioner-select').value;
+            selectedPractitioner = pieterPractionerDetails;
+    }
+    
+    function handleLocation() {
+        const locationDetails = JSON.stringify({
+            "resourceType": "Location",
+            "status": "active",
+            "name": "Washington, DC metro area",
+            "identifier": [
+                {
+                    "value": "B1-S.F2"
+                },
+                {
+                    "value": "B1-S.F2.1.00"
+                }
+            ]
+        });
+        const selected = document.getElementById('location-select').value;
+        selectedLocation = locationDetails;
+    }
+
+    function createOrderSelectInput(){
+        event.preventDefault(); 
+
+        selectedStartDate = document.getElementById("startDate").value;
+        selectedEndDate = document.getElementById("endDate").value;
+        if(selectedRequestType == "service"){
+            fetch('/read-order-select-service-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let requestStructure = data.data;
+                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+                    let serviceRequest = requestStructure.context.resources.entry[0];
+                    serviceRequest.id = "service-"+Date.now();
+                    serviceRequest.entryInfo.code.text = selectedService.text;
+                    serviceRequest.entryInfo.code.coding[0].system = selectedService.system;
+                    serviceRequest.entryInfo.code.coding[0].code = selectedService.code;
+                    serviceRequest.entryInfo.quantity.value = selectedQuantity;
+                    serviceRequest.entryInfo.occurrence.occurrencePeriod.start = selectedStartDate;
+                    serviceRequest.entryInfo.occurrence.occurrencePeriod.end = selectedEndDate;
+                    invokeCrdApi(requestStructure);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        else if(selectedRequestType == "medication"){
+            fetch('/read-order-select-medication-sample-structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let requestStructure = data.data;
+                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+                    let medicationRequest = requestStructure.context.resources.entry[0];
+                    medicationRequest.id = "medication-"+Date.now();
+                    
+                    medicationRequest.entryInfo.medicationCodeableConcept.text = selectedMedication.text;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].system = selectedMedication.system;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].code = selectedMedication.code;
+                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = selectedMedication.text;
+                    
+                    medicationRequest.entryInfo.dispenseRequest.quantity.value = selectedQuantity;
+                    medicationRequest.entryInfo.effectiveDosePeriod.start = selectedStartDate;
+                    medicationRequest.entryInfo.effectiveDosePeriod.end = selectedEndDate;
+                    invokeCrdApi(requestStructure);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        return false;
+      }
+
+    function disableForRequestTypeSelection(){
+        selectedService = null;
+        selectedMedication = null;
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = 0;
+
+        document.getElementById('medication-select').setAttribute("disabled", "disabled");
+        document.getElementById('service-select').setAttribute("disabled", "disabled");
+        document.getElementById('startDate').setAttribute("disabled", "disabled");
+        document.getElementById('endDate').setAttribute("disabled", "disabled");
+        document.getElementById('quantity').setAttribute("disabled", "disabled");
+        document.getElementById('submit').setAttribute("disabled", "disabled");
+        
+    }
+
+    function prepareForMedOrServiceSelection(){
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = 0;
+        document.getElementById('submit').removeAttribute("disabled");
+        document.getElementById('startDate').removeAttribute("disabled")
+        document.getElementById('endDate').removeAttribute("disabled")
+        document.getElementById('quantity').removeAttribute("disabled")
+    }
+
+    function invokeCrdApi(data){
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/invoke-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data,
+                ipName : "HlsClinicalDecisionSupport_ProcessOrderEcho",
+                ipSubtype: "ProcessOrderEcho"
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Hide the spinner after receiving the response
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } 
+        })
+        .catch(error => {
+            console.log('Error:', error);
+      
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
+
+</script>

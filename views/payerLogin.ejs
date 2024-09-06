@@ -1,0 +1,12 @@
+<%- include('header') -%>
+<% 
+        const loginHeader = "Payer Login";
+        const loginSubHeader = "Log in to the Payer Org";
+        const formId = "payerLogin";
+        const defBaseUrl = "https://org3om.test1.lightning.pc-rnd.force.com/";
+        const defCallBackUrl = "http://localhost:3000/payer/callback";
+        const defClientId ="3MVG9l3R9F9mHOGaeV4tRTnokx.tW_hEOUSeyP7dRg_8eQdJUsLa4GYyOsLWlBiZwRY_O9X9zwqry67zs.rQY";
+    %>
+<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader, formId : formId, defBaseUrl : defBaseUrl, defCallBackUrl : defCallBackUrl, defClientId : defClientId }) %>
+
+<%- include('footer') -%>
