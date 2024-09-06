@@ -33,29 +33,24 @@ body {
 }
 
 .card {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 15px;
-    margin: 10px 0;
-    background-color: #fff;
     width :max-content;
     justify-content: center;
   }
 
-  .card.warning {
+  .card-header.warning {
     background-color: #e9bdb4;
   }
 
-  .card.info {
+  .card-header.info {
     background-color: #91e6de;
   }
-
-  .card-header h3 {
-    margin: 0 0 10px;
+  .card-header {
+    font-weight: bold;
+    font-size: 1.25em;
   }
 
-  .card-body p {
-    margin: 10px 0;
+  .card-title {
+    font-size: 1em;
   }
 
   .card-link {
@@ -152,6 +147,8 @@ th, td {
   padding: 5px;
   text-align: left;
   border: 1px solid #ddd;
+  justify-content: left;
+  align-content: left;
 }
 th {
   background-color: #f4f4f4;
@@ -167,6 +164,8 @@ th {
   padding: 5px 5px;
   border: none;
   cursor: pointer;
+  align-content: left;
+  justify-content: left;
 }
 .submit-btn:hover {
   background-color: #45a049;

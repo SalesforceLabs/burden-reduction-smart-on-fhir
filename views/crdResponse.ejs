@@ -5,31 +5,23 @@
             <h2 class="heading-style">Coverage Requirement Discovery Responses</h2>    
         </div>
     </div>
+
     <div class="cardContainer">
         <% if (operationalOutcome.issue[0].severity != 'error') { %>
             <% cards.forEach(function(card, index) { const action=systemActions[index]; // Get corresponding systemAction
                 const modalId='modal-' + index; // Unique ID for each modal %>
-                <div class="col-md-4">
-                    <div class="card mb-3 <%= card.indicator %>">
-                        <div class="card-header">
-                            <h5 class="card-title">
-                                <%= card.source.label %>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">
-                                <%= card.summary %>
-                            </p>
-                            <a href="<%= card.links.url %>" class="btn btn-primary">
-                                <%= card.links.label %>
-                            </a>
-                            <button type="button" class="btn btn-info mt-2" data-bs-toggle="modal"
-                                data-bs-target="#<%= modalId %>">
-                                View System Action
-                            </button>
-                        </div>
+                <div class="card">
+                    <div class="card-header <%= card.indicator %>"><%= card.source.label %></div>
+                    <div class="card-body">
+                      <h3 class="card-title"> <%= card.summary %></h5>
                     </div>
-                </div>
+                    <div class="card-footer">
+                        <a href="<%= card.links.url %>" class="btn btn-primary"  role="button" aria-disabled="true"><%= card.links.label %></a>
+                        <button type="button" class="btn btn-info" data-bs-toggle="modal"data-bs-target="#<%= modalId %>">
+                                View System Action
+                        </button>
+                    </div>
+                  </div>
 
                 <!-- Modal for System Action -->
                 <div class="modal fade" id="<%= modalId %>" tabindex="-1" aria-labelledby="modalLabel-<%= index %>"
