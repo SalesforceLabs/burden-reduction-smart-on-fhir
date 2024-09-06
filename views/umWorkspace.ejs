@@ -3,16 +3,24 @@
     <div class="container w-45 border py-5">
         <h1 class="heading-style">Select a Utilization Management Operation</h1>
         <br>
+        
         <form>
             <div class="row">
-                <div class="col"></div>
+                <div class="col">
+                    
+                </div>
               <div class="col">
-                <select class="form-control" id="processTypeDropdown" onchange="loadProcessType()">
-                    <option value="" class="text-center">-- Select Operation Type --</option>
-                    <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
-                    <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
-                    <option value="pas" title="Streamline the prior authorization process, reducing turnaround times and administrative costs.">Prior Authorization & Support</option>
-                </select>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text bg-info text-white" for="inputGroupSelect01">Select Service</label>
+                    </div>
+                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType()">
+                        <option selected>Choose...</option>
+                        <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
+                        <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
+                        <option value="pas" title="Streamline the prior authorization process, reducing turnaround times and administrative costs.">Prior Authorization & Support</option>
+                    </select>
+                  </div>
                </div>
                <div class="col"></div>
             </div>
