@@ -1,10 +1,10 @@
 {
-  "instanceUrl": "https://org3om.test1.my.pc-rnd.salesforce.com",
-  "clientId": "3MVG9l3R9F9mHOGaeV4tRTnokx.tW_hEOUSeyP7dRg_8eQdJUsLa4GYyOsLWlBiZwRY_O9X9zwqry67zs.rQY",
+  "instanceUrl": "https://umblitz2.test1.my.pc-rnd.salesforce.com",
+  "clientId": "3MVG9.AgwtoIvERQgAk0juI9LuDHjc49kj0sBeFILVOya4M65Zt3eo1T09iif8uCshyFmJcgagoPFUdUGgL9v",
   "callbackUrl": "http://localhost:3000/payer/callback",
-  "accessToken": "00DSB00000BMlmj!AQEAQMooE0e0OE3td8ze3QJKv24TjSXYXf7Bd.3i6g2tqUM6q3pOdq2UbxNoyCi65MDg7n2GKzyIbK11kLne5JsypiNhnRsB",
-  "authUrl": "https:/org3om.test1.lightning.pc-rnd.force.com/services/oauth2/authorize",
-  "baseUrl": "https://org3om.test1.lightning.pc-rnd.force.com/",
-  "ipType": "HlsClinicalDecisionSupport",
-  "ipSubtype": "DTR"
+  "accessToken": "00DSG00000GePL3!AQEAQEkYbAScJffEZfurp77ENFpYwpafxPPMHBuq_4qgvJRQfymCVJqwVkDbH5T95pVcgfFyOq8mSBdwuL..ea75eG_sIJ3S",
+  "authUrl": "https:/umblitz2.test1.my.pc-rnd.salesforce.com/services/oauth2/authorize",
+  "baseUrl": "https://umblitz2.test1.my.pc-rnd.salesforce.com/",
+  "ipType": null,
+  "ipSubtype": null
 }

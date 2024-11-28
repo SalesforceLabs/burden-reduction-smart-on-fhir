@@ -5,65 +5,43 @@
         <div class="text-center title pb-2">
             <h2 class="heading-style">Medication/Service Request</h2>
             <span>Select a Medication/Service to verify its coverage.</span>
+            <hr>
         </div>
-        <form onsubmit="return createOrderSelectInput(event);">
+        <form onsubmit="return createOrderSelectInputRefined(event);">
             <div class="form-group">
                 <h3 class="font-weight-bold">Patient Details</h3>
             </div>
             <div class="form-group col-md-6">
-                <select class="form-control" name="patient" id="patient-select" onchange="handlePatient()" required>
-                    <option selected>Choose...</option>
-                    <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
-                    <option value="001SB00000QmhN4YAJ">Charles Green</option>
-                </select>
+                <%- include('typeAhead',{
+                    elementId : 'typeAhead1',
+                    elementLabel : 'Select Patient',
+                    elementSourceMethod : '/fetchData',
+                    entityName : 'Account',
+                    fields: ['Id','Name'],
+                    listId: 'list1',
+                    onClickFunction: 'handlePatientSelect',
+                    condition: 'WHERE IsPersonAccount=true'
+                }) -%>
             </div>
         
             <hr/>
-            <div class="form-group">
+            <div class="form-group pb-2">
                 <h3>Medication/Service Request</h3>
             </div>
 
-            <div class="row pb-4">
-                <div class="col">
-                    <span>RequestType</span>
-                    <select class="form-control" name="requestType" id="request-type-select" onchange="handleRequestType()" required>
-                        <option selected>Choose...</option>
-                        <option value="medication">Medication</option>
-                        <option value="service">Service</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <span>Service</span>
-                    <select class="form-control" name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled" required>
-                        <option selected>Choose...</option>
-                        <option value="617994">MRA Knee Vessels Right</option>
-                        <option value="617995">MRA Knee Vessels Left</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <span>Medication</span>
-                    <select class="form-control" name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled" required>
-                        <option selected>Choose...</option>
-                        <option value="617993">Amoxicillin 120 MG/ML</option>
-                        <option value="617999">Paracetmol 650MG</option>
-                    </select>
-                </div>
+            <div id="dynamicRequestForms">
             </div>
-            
+
             <div class="row pb-2">
                 <div class="col">
-                    <span>StartDate</span>
-                    <input class="form-control" type="date" id="startDate" disabled="disabled">
+                    <div class="btn-right-align">
+                        <button id="addForm" class="btn btn-primary btn-sm" type="button" title="Add a new request">
+                            <i class="fas fa-plus btn-icon"></i>
+                            Add
+                        </button>
+                    </div>
                 </div>
-                <div class="col">
-                    <span>EndDate</span>
-                    <input class="form-control" type="date" id="endDate" disabled="disabled">            
-                </div>
-                <div class="col">
-                    <span>Quantity</span>
-                    <input class="form-control" type="text" id="quantity" name="quantity" oninput="handleQuantity()" disabled="disabled">
-                </div>
-            </div>
+            </div>  
         
             <hr>
             <div class="form-group">
@@ -71,18 +49,28 @@
             </div>
             <div class="row pb-4">
                 <div class="col">
-                    <span>Practitioner</span>
-                    <select class="form-control" name="practitioner" id="practitioner-select" onchange="handlePractitioner()" required>
-                        <option selected>Choose...</option>
-                        <option value="001SB00000MNQMvYAP">Practitioner van de Heuvel</option>
-                    </select>
+                    <%- include('typeAhead',{
+                        elementId : 'typeAhead2',
+                        elementLabel : 'Select Practitioner',
+                        elementSourceMethod : '/fetchData',
+                        entityName : 'Account',
+                        fields: ['Id','Name'],
+                        listId: 'list2',
+                        onClickFunction: 'handlePractitionerSelect',
+                        condition: 'WHERE IsPersonAccount=true'
+                    }) -%>
                 </div>
-                <div class="col">
-                    <span>Location</span>
-                    <select class="form-control" name="location" id="location-select" onchange="handleLocation()">
-                        <option selected>Choose...</option>
-                        <option value="0klSB0000000KjVYAU">Washington, DC metro area</option>
-                    </select>
+                <div class="form-group col-md-6">
+                    <%- include('typeAhead',{
+                        elementId : 'typeAhead3',
+                        elementLabel : 'Select Location',
+                        elementSourceMethod : '/fetchData',
+                        entityName : 'HealthcareFacility',
+                        fields: ['Id','Name'],
+                        listId: 'list3',
+                        onClickFunction: 'handleLocationSelect',
+                        condition: ''
+                    }) -%>
                 </div>
             </div>
             <div class="text-center">
@@ -97,9 +85,11 @@
 <%- include('footer') -%>
 <script>
     let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+    let requestForms = {};
     document.getElementById('startDate').valueAsDate = new Date();
     document.getElementById('endDate').valueAsDate = new Date();
     document.getElementById('quantity').value = 0;
+
     function handlePatient() {
         const pieterDetails = JSON.stringify({
             "resourceType": "Patient",
@@ -159,18 +149,19 @@
         }
     }
 
-    function handleRequestType() {
-        selectedRequestType = document.getElementById('request-type-select').value;
-        disableForRequestTypeSelection();
+    function handleRequestType(formCount) {
+        selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
+        disableForRequestTypeSelection(formCount);
         if(selectedRequestType == "service"){
-            document.getElementById('service-select').removeAttribute("disabled");
+            document.getElementById(`service-select-${formCount}`).removeAttribute("disabled");
         }
         if(selectedRequestType == "medication"){
-            document.getElementById('medication-select').removeAttribute("disabled");            
+            document.getElementById(`medication-select-${formCount}`).removeAttribute("disabled");            
         }
+        populateRequestForm(formCount, 'selectedRequestType', selectedRequestType);
     }
 
-    function handleServiceRequest() {
+    function handleServiceRequest(formCount) {
         const mraKneeVesselsRight = {
             system: "http://www.nlm.nih.gov/research/umls/rxnorm",
             code: "617994",
@@ -182,15 +173,17 @@
             text: "MRA Knee Vessels Left"
         };
         
-        prepareForMedOrServiceSelection();
-        const selected = document.getElementById('service-select').value;
-        if(selected == "617994")
+        prepareForMedOrServiceSelection(formCount);
+        const selected = document.getElementById(`service-select-${formCount}`).value;
+        if(selected == "617994") {
             selectedService = mraKneeVesselsRight;
-        else
+        }else {
             selectedService = mraKneeVesselsLeft;
+        }
+        populateRequestForm(formCount, 'selectedService', selectedService);
     }
 
-    function handleMedicationRequest() {
+    function handleMedicationRequest(formCount) {
         const amoxicillin = {
             system: "http://www.nlm.nih.gov/research/umls/rxnorm",
             code: "617993",
@@ -203,16 +196,29 @@
             text: "Paracetmol 620 MG"
         };
         
-        prepareForMedOrServiceSelection();
-        const selected = document.getElementById('medication-select').value;
-        if(selected == "617993")
+        prepareForMedOrServiceSelection(formCount);
+        const selected = document.getElementById(`medication-select-${formCount}`).value;
+        if(selected == "617993"){
             selectedMedication = amoxicillin;
-        else
-        selectedMedication = paracetmol;
+        }else {
+            selectedMedication = paracetmol;
+        }
+        populateRequestForm(formCount, 'selectedMedication', selectedMedication);
     }
 
-    function handleQuantity() {
-        selectedQuantity = Number(document.getElementById("quantity").value);
+    function handleQuantity(formCount) {
+        selectedQuantity = Number(document.getElementById(`quantity-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedQuantity', selectedQuantity);
+    }
+
+    function handleStartDate(formCount) {
+        selectedStartDate = (document.getElementById(`startDate-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedStartDate', selectedStartDate);
+    }
+
+    function handleEndDate(formCount) {
+        selectedEndDate = (document.getElementById(`endDate-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
     }
     
     function handlePractitioner() {
@@ -294,6 +300,71 @@
         selectedLocation = locationDetails;
     }
 
+    function createOrderSelectInputRefined() {
+        event.preventDefault();        
+
+        //fetch base structre
+        fetch('/read-order-select-request-base-structure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let requestStructure = data.data.base;
+                let medicationRequestBase = data.data.medicationRequest;
+                let serviceRequestBase = data.data.serviceRequest; 
+                requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+
+                Object.keys(requestForms).forEach(key => {
+                    let requestDetails = requestForms[key];
+                    requestStructure.context.resources.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
+                });
+        
+                requestStructure.prefetch.patient = selectedpatient;
+                requestStructure.prefetch.practitioner = selectedPractitioner;
+                requestStructure.prefetch.location = selectedLocation;
+        
+                invokeCrdApi(requestStructure);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
+        if(requestDetails.selectedRequestType  == "service"){
+            let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
+            serviceRequest.id = "service-"+Date.now();
+            serviceRequest.entryInfo.code.text = requestDetails.selectedService.text;
+            serviceRequest.entryInfo.code.coding[0].system = requestDetails.selectedService.system;
+            serviceRequest.entryInfo.code.coding[0].code = requestDetails.selectedService.code;
+            serviceRequest.entryInfo.quantity.value = requestDetails.selectedQuantity;
+            serviceRequest.entryInfo.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
+            serviceRequest.entryInfo.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+            return serviceRequest;
+        } else {
+
+            let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
+            medicationRequest.id = "medication-"+Date.now();
+            medicationRequest.entryInfo.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
+            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
+            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
+            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
+            medicationRequest.entryInfo.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+            medicationRequest.entryInfo.effectiveDosePeriod.start = requestDetails.selectedStartDate;
+            medicationRequest.entryInfo.effectiveDosePeriod.end = requestDetails.selectedEndDate;
+            return medicationRequest;
+        }
+    }
+    
+    
+    
+    
+    
     function createOrderSelectInput(){
         event.preventDefault(); 
 
@@ -319,6 +390,9 @@
                     serviceRequest.entryInfo.quantity.value = selectedQuantity;
                     serviceRequest.entryInfo.occurrence.occurrencePeriod.start = selectedStartDate;
                     serviceRequest.entryInfo.occurrence.occurrencePeriod.end = selectedEndDate;
+                    requestStructure.prefetch.patient = selectedpatient;
+                    requestStructure.prefetch.practitioner = selectedPractitioner;
+                    requestStructure.prefetch.location = selectedLocation;
                     invokeCrdApi(requestStructure);
                 }
             })
@@ -349,6 +423,9 @@
                     medicationRequest.entryInfo.dispenseRequest.quantity.value = selectedQuantity;
                     medicationRequest.entryInfo.effectiveDosePeriod.start = selectedStartDate;
                     medicationRequest.entryInfo.effectiveDosePeriod.end = selectedEndDate;
+                    requestStructure.prefetch.patient = selectedpatient;
+                    requestStructure.prefetch.practitioner = selectedPractitioner;
+                    requestStructure.prefetch.location = selectedLocation;
                     invokeCrdApi(requestStructure);
                 }
             })
@@ -360,30 +437,30 @@
         return false;
       }
 
-    function disableForRequestTypeSelection(){
+    function disableForRequestTypeSelection(formCount){
         selectedService = null;
         selectedMedication = null;
         selectedStartDate = null;
         selectedEndDate = null;
         selectedQuantity = 0;
 
-        document.getElementById('medication-select').setAttribute("disabled", "disabled");
-        document.getElementById('service-select').setAttribute("disabled", "disabled");
-        document.getElementById('startDate').setAttribute("disabled", "disabled");
-        document.getElementById('endDate').setAttribute("disabled", "disabled");
-        document.getElementById('quantity').setAttribute("disabled", "disabled");
-        document.getElementById('submit').setAttribute("disabled", "disabled");
+        document.getElementById(`medication-select-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`service-select-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`startDate-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`endDate-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`quantity-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`submit`).setAttribute("disabled", "disabled");
         
     }
 
-    function prepareForMedOrServiceSelection(){
+    function prepareForMedOrServiceSelection(formCount){
         selectedStartDate = null;
         selectedEndDate = null;
         selectedQuantity = 0;
         document.getElementById('submit').removeAttribute("disabled");
-        document.getElementById('startDate').removeAttribute("disabled")
-        document.getElementById('endDate').removeAttribute("disabled")
-        document.getElementById('quantity').removeAttribute("disabled")
+        document.getElementById(`startDate-${formCount}`).removeAttribute("disabled")
+        document.getElementById(`endDate-${formCount}`).removeAttribute("disabled")
+        document.getElementById(`quantity-${formCount}`).removeAttribute("disabled")
     }
 
     function invokeCrdApi(data){
@@ -423,4 +500,142 @@
         });
      }
 
-</script>
+     async function handlePatientSelect(element) {
+        const $suggestionBox = $('#list1');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead1').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const patientDetails = await fetchData(param);
+        const patientNode = createPatientNode(patientDetails[0]);
+        selectedpatient = patientNode;
+     }
+
+     async function handlePractitionerSelect(element) {
+        const $suggestionBox = $('#list2');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead2').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, (SELECT Id, SourceSystem, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM HealthcareProviders) FROM Account WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const practitionerDetails = await fetchData(param);
+        console.log(practitionerDetails);
+        const practitionerNode = createPractitionerDetailsNode(practitionerDetails[0]);
+        selectedPractitioner = practitionerNode;
+     }
+
+     async function handleLocationSelect(element) {
+        const $suggestionBox = $('#list3');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead3').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers), Location.Id, Location.Name FROM HealthcareFacility WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const locationDetails = await fetchData(param);
+        const locationNode = createLocationDetailsNode(locationDetails[0]);
+        selectedLocation = locationNode;
+     }
+
+     function createPatientNode(patient) {
+        var patientNode = {
+                            "resourceType": "patient",
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive
+                        }
+        patientNode.identifier = createIdentifiers(patient);
+        patientNode.name = createName(patient);
+
+        return patientNode;
+     }
+
+     function createPractitionerDetailsNode(patient) {
+
+        var practitionerNode = {
+                            "resourceType": "practitioner",
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive,
+                            "identifier":[]
+        }
+
+        if(patient.HealthcareProviders.records.length > 0){
+            patient.HealthcareProviders.records.forEach( hcpRecord => {
+                practitionerNode.identifier.push(...createIdentifiers(hcpRecord));
+            })
+        }
+
+        practitionerNode.name = createName(patient);
+        return practitionerNode;
+     }
+
+     function createLocationDetailsNode(patient) {
+        var locationNode = {
+            "resourceType": "Location",
+            "name": patient.Location.Name,
+            "status": "active"
+        }
+
+        locationNode.identifier = createIdentifiers(patient);
+        return locationNode;
+     }
+
+     function createIdentifiers(patient) {
+        var identifiers = [];
+        patient.Identifiers.records.forEach( identifier => {
+            identifiers.push({
+                "value" :  identifier.IdValue,
+                "system" : identifier.SourceSystem,
+                "use" : identifier.IdUsageType
+            })
+        })
+
+        return identifiers;
+     }
+
+     function createName(patient) {
+        var names = [];
+        var name = {};
+
+        name.use = "usual";
+        name.family = patient.LastName;
+        name.given = [patient.FirstName];
+        name.suffix  = ["Msc"];
+
+        names.push(name);
+        return names;
+     }
+
+     function populateRequestForm(id, key, value) {
+        requestForms[`form-${id}`] ??= {}; 
+        requestForms[`form-${id}`][key] = value;
+     }
+
+    </script>
+
+<script src="utils/requestForm.js"></script>
+<script src="utils/typeAheadScript.js"></script>"

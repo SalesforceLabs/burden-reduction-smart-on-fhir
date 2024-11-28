@@ -16,6 +16,12 @@ class utils {
             return `FIND {${queryString}*} IN ALL FIELDS RETURNING ${entityName} (${fieldsList})`;
         }
     }
+
+
+    static createPatientNodeForCRD(entityId) {
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName FROM Account WHERE Id = '${entityId}'`;
+
+    }
 }
 
 module.exports = utils;

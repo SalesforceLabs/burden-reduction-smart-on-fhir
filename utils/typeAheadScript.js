@@ -4,6 +4,8 @@ async function  fetchData(input) {
     const elementSourceMethod = input.elementSourceMethod;
     const entityName = input.entityName;
     const fields = input.fields;
+    const condition = input.condition;
+    const isSosl = input.isSosl;
 
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -16,15 +18,17 @@ async function  fetchData(input) {
         body : JSON.stringify({
             queryString : query,
             entityName: entityName,
-            fields: fields
+            fields: fields,
+            condition: condition,
+            isSosl: isSosl
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const records = data.data.searchRecords;
+            const records = (isSosl == true ? data.data.searchRecords : data.data.records); 
             records.forEach(record => {
-                output.push(record.Name);
+                output.push(record);
             });
             resolve(output);
         } else {

@@ -1,0 +1,521 @@
+{
+  "root": {
+    "additionalAttributes": {
+      "approvalDateTime": "",
+      "lastRevisedDateTime": "",
+      "displayType": "DisplayType1",
+      "purpose": "Some Testing",
+      "effectiveToDate": "",
+      "publisher": null,
+      "effectiveFromDate": "",
+      "performerType": "Performer1"
+    },
+    "description": null,
+    "designerCustomizationType": "Discovery Framework",
+    "discoveryFrameworkUsageType": "HlsDocTemplatesAndRules",
+    "elements": [
+      {
+        "customTypeDetails": null,
+        "description": null,
+        "designerCustomizationType": "Discovery Framework",
+        "discoveryFrameworkUsageType": null,
+        "elements": [
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "First_Name",
+                "questionNamespace": null,
+                "questionText": "First Name"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "First_Name",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step1",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "First Name",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "0.0",
+            "type": "Text"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "Last_Name",
+                "questionNamespace": null,
+                "questionText": "Last Name"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Last_Name",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step1",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Last Name",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "1.0",
+            "type": "Text"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "Address",
+                "questionNamespace": null,
+                "questionText": "Address"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Address",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step1",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Address",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "2.0",
+            "type": "Text"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Integer",
+                "questionDeveloperName": "Age",
+                "questionNamespace": null,
+                "questionText": "Age of the Person"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Age",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step1",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Age of the Person",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "3.0",
+            "type": "Number"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "Company",
+                "questionNamespace": null,
+                "questionText": "Place Of Work"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Company",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step1",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Place Of Work",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "4.0",
+            "type": "Text"
+          }
+        ],
+        "level": "0.0",
+        "name": "Step1",
+        "omniProcessVersionNumber": "1.0",
+        "parentElementName": null,
+        "parentElementType": null,
+        "propertySetConfig": {
+          "checkLabel": null,
+          "conditionType": "Hide if False",
+          "dataType": null,
+          "dateFormat": null,
+          "expression": null,
+          "help": "null",
+          "helpText": null,
+          "label": "Patient Details",
+          "options": [],
+          "radioLabels": [],
+          "required": "null",
+          "show": {},
+          "text": null,
+          "type": null
+        },
+        "sequenceNumber": "0.0",
+        "type": "Step"
+      },
+      {
+        "customTypeDetails": null,
+        "description": null,
+        "designerCustomizationType": "Discovery Framework",
+        "discoveryFrameworkUsageType": null,
+        "elements": [
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "Father_s_Name",
+                "questionNamespace": null,
+                "questionText": "What is your fathers name?"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Father_s_Name",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step2",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "What is your father&#39;s name?",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "0.0",
+            "type": "Text"
+          }
+        ],
+        "level": "0.0",
+        "name": "Step2",
+        "omniProcessVersionNumber": "1.0",
+        "parentElementName": null,
+        "parentElementType": null,
+        "propertySetConfig": {
+          "checkLabel": null,
+          "conditionType": "Hide if False",
+          "dataType": null,
+          "dateFormat": null,
+          "expression": null,
+          "help": "null",
+          "helpText": null,
+          "label": "Family Details",
+          "options": [],
+          "radioLabels": [],
+          "required": "null",
+          "show": {},
+          "text": null,
+          "type": null
+        },
+        "sequenceNumber": "1.0",
+        "type": "Step"
+      },
+      {
+        "customTypeDetails": null,
+        "description": null,
+        "designerCustomizationType": "Discovery Framework",
+        "discoveryFrameworkUsageType": null,
+        "elements": [
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "MMCUAsmtQues1CUAsmtQues1",
+                "questionNamespace": null,
+                "questionText": "How are you feeling today?"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "MMCUAsmtQues1CUAsmtQues1",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step3",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "How are you feeling today?",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "0.0",
+            "type": "Text"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "File",
+                "questionDeveloperName": "UploadMedicalRecords",
+                "questionNamespace": null,
+                "questionText": "Please upload medical records."
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "UploadMedicalRecords",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step3",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Please upload medical records.",
+              "options": [],
+              "radioLabels": [],
+              "required": "null",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "1.0",
+            "type": "File"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Checkbox",
+                "questionDeveloperName": "Smoke",
+                "questionNamespace": null,
+                "questionText": "Do you smoke?"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "Smoke",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step3",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": "Do you smoke?",
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Do you smoke?",
+              "options": [],
+              "radioLabels": [],
+              "required": "null",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "2.0",
+            "type": "Checkbox"
+          },
+          {
+            "customTypeDetails": {
+              "discoveryFramework": {
+                "description": null,
+                "displayTextCategory": null,
+                "questionCategory": "Demographic",
+                "questionDataType": "Text",
+                "questionDeveloperName": "MCUAsmtQues2",
+                "questionNamespace": null,
+                "questionText": "Have been to the Knowwhere ?"
+              }
+            },
+            "description": null,
+            "designerCustomizationType": "Discovery Framework",
+            "discoveryFrameworkUsageType": null,
+            "elements": [],
+            "level": "1.0",
+            "name": "MCUAsmtQues2",
+            "omniProcessVersionNumber": "1.0",
+            "parentElementName": "Step3",
+            "parentElementType": "Step",
+            "propertySetConfig": {
+              "checkLabel": null,
+              "conditionType": "Hide if False",
+              "dataType": null,
+              "dateFormat": null,
+              "expression": null,
+              "help": "false",
+              "helpText": "",
+              "label": "Have been to the Knowwhere ?",
+              "options": [],
+              "radioLabels": [],
+              "required": "false",
+              "show": {},
+              "text": null,
+              "type": null
+            },
+            "sequenceNumber": "3.0",
+            "type": "Text"
+          }
+        ],
+        "level": "0.0",
+        "name": "Step3",
+        "omniProcessVersionNumber": "1.0",
+        "parentElementName": null,
+        "parentElementType": null,
+        "propertySetConfig": {
+          "checkLabel": null,
+          "conditionType": "Hide if False",
+          "dataType": null,
+          "dateFormat": null,
+          "expression": null,
+          "help": "null",
+          "helpText": null,
+          "label": "Health Details",
+          "options": [],
+          "radioLabels": [],
+          "required": "null",
+          "show": {},
+          "text": null,
+          "type": null
+        },
+        "sequenceNumber": "2.0",
+        "type": "Step"
+      }
+    ],
+    "isActive": true,
+    "language": "English",
+    "lastModifiedDate": "2024-11-15T06:52:12.000Z",
+    "name": "E2E",
+    "omniprocessId": "0jNSG000000Bl6r2AC",
+    "subType": "SampleOS",
+    "type": "E2E",
+    "uniqueName": null,
+    "versionNumber": "1.0"
+  }
+}

@@ -1,0 +1,13 @@
+<form id="myForm" action="/submit" method="POST">
+    <div class="radio-group">
+        <label>
+            <input type="radio" name="option" value="<%= label1 %>" required onchange="submitForm(event)">
+            <%= label1 %>
+        </label>
+
+        <label>
+            <input type="radio" name="option" value="<%= label2 %>" required onchange="submitForm(event)">
+            <%= label2 %>
+        </label>
+    </div>
+</form>
