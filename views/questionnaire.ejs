@@ -1,0 +1,114 @@
+<%- include('header') -%>
+        <link href="/static/questionnaireStyle.css" rel="stylesheet" >
+        <div>
+            <div class="title">
+                <h2 class="heading-style">DTR Questionnaire</h2>
+                <div class="form-container">
+                    <form action="/submit" method="POST" enctype="multipart/form-data">
+                    <% if (root && root.elements) { %>
+                        <% root.elements.forEach((step, stepIndex) => { %>
+                            <div class="step <%= stepIndex === 0 ? 'active' : '' %>" id="step-<%= stepIndex %>">
+                                <h2>Section <%= stepIndex + 1 %>: <%= step.propertySetConfig.label %></h2>
+                                
+                                <% if (step.elements) { %>
+                                    <% step.elements.forEach((question, questionIndex) => { %>
+                                        <div class="question">
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType !== 'text-block') { %>
+                                                <label for="question-<%= stepIndex %>-<%= questionIndex %>">
+                                                    <%= question.customTypeDetails.discoveryFramework.questionText %>
+                                                </label>
+                                            <% } %>
+                                            
+                                            <!-- Various input types based on questionDataType -->
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Text') { %>
+                                                <input type="text" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'textarea') { %>
+                                                <textarea id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %>></textarea>
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'date') { %>
+                                                <input type="date" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'datetime-local') { %>
+                                                <input type="datetime-local" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'File') { %>
+                                                <input type="file" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Integer') { %>
+                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" step="1" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'decimal') { %>
+                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" step="any" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'url') { %>
+                                                <input type="url" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'time') { %>
+                                                <input type="time" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Checkbox') { %>
+                                                <input type="checkbox" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'multi-select') { %>
+                                                <select id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>[]" multiple <%= question.propertySetConfig.required ? 'required' : '' %>>
+                                                    <% if (question.options) { %>
+                                                        <% question.options.forEach(option => { %>
+                                                            <option value="<%= option.value %>"><%= option.label %></option>
+                                                        <% }) %>
+                                                    <% } %>
+                                                </select>
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'radio') { %>
+                                                <% if (question.options) { %>
+                                                    <% question.options.forEach(option => { %>
+                                                        <label>
+                                                            <input type="radio" name="question-<%= stepIndex %>-<%= questionIndex %>" value="<%= option.value %>" <%= question.propertySetConfig.required ? 'required' : '' %> /> <%= option.label %>
+                                                        </label>
+                                                    <% }) %>
+                                                <% } %>
+                                            <% } %>
+            
+                                            <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'text-block') { %>
+                                                <p><%= question.label || question.name %></p>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+                                <% } %>
+                                <!-- Navigation Buttons -->
+                                <div class="buttons-container">
+                                    <% if (stepIndex > 0) { %>
+                                        <button type="button" class="back-btn" onclick="showStep(<%= stepIndex - 1 %>)">Back</button>
+                                    <% } %>
+                                    <% if (stepIndex < root.elements.length - 1) { %>
+                                        <button type="button" class="next-btn" onclick="showStep(<%= stepIndex + 1 %>)">Next</button>
+                                    <% } else { %>
+                                        <button type="submit" class="submit-btn">Submit</button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                    </form>
+                </div>
+            </div>  
+        </div>
+        <script>
+            function showStep(stepIndex) {
+                document.querySelectorAll('.step').forEach((step, index) => {
+                    step.classList.toggle('active', index === stepIndex);
+                });
+            }
+        </script>
+<%- include('footer') -%>

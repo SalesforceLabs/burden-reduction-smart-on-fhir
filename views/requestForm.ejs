@@ -1,0 +1,46 @@
+<div class="row pb-2">
+    <div class="col">
+        <h5 class="requestNumber">Request-<%= formCount %></h5>
+    </div>
+</div>
+<div class="row pb-4">
+    <div class="col">
+        <span>RequestType</span>
+        <select class="form-control" name="requestType" id='request-type-select-<%= formCount %>' onchange="handleRequestType(<%= formCount %>)" required>
+            <option selected>Choose...</option>
+            <option value="medication">Medication</option>
+            <option value="service">Service</option>
+        </select>
+    </div>
+    <div class="col">
+        <span>Service</span>
+        <select class="form-control" name="service" id='service-select-<%= formCount %>' onchange="handleServiceRequest(<%= formCount %>)" disabled="disabled" required>
+            <option selected>Choose...</option>
+            <option value="617994">MRA Knee Vessels Right</option>
+            <option value="617995">MRA Knee Vessels Left</option>
+        </select>
+    </div>
+    <div class="col">
+        <span>Medication</span>
+        <select class="form-control" name="medication" id='medication-select-<%= formCount %>' onchange="handleMedicationRequest(<%= formCount %>)" disabled="disabled" required>
+            <option selected>Choose...</option>
+            <option value="617993">Amoxicillin 120 MG/ML</option>
+            <option value="617999">Paracetmol 650MG</option>
+        </select>
+    </div>
+</div>
+
+<div class="row pb-2">
+    <div class="col">
+        <span>StartDate</span>
+        <input class="form-control" type="date" id='startDate-<%= formCount %>' disabled="disabled">
+    </div>
+    <div class="col">
+        <span>EndDate</span>
+        <input class="form-control" type="date" id='endDate-<%= formCount %>' disabled="disabled">            
+    </div>
+    <div class="col">
+        <span>Quantity</span>
+        <input class="form-control" type="text" id='quantity-<%= formCount %>' name="quantity" oninput="handleQuantity(<%= formCount %>)" disabled="disabled">
+    </div>
+</div>

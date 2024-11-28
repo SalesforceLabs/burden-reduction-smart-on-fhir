@@ -2,6 +2,7 @@
 <div class="text-center center-div" id="baseLogin">
     <div class="container w-45 border py-5">
         <h1 class="heading-style">Select a Utilization Management Operation</h1>
+        <hr>
         <br>
         
         <form>
@@ -38,6 +39,8 @@
     function loadProcessType() {
         const processType = document.getElementById('processTypeDropdown').value;
         const processTypeContent = document.getElementById('processTypeContent');
+        const responseContainer = document.getElementById('responseContainer');
+        const tableContainer = document.getElementById('tableContainer');
         
         /*processTypeContent.classList.remove('active');
         processTypeContent.innerHTML = '';*/
