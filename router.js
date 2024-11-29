@@ -181,8 +181,11 @@ router.post('/invoke-ip', async (req, res) => {
 });
 
 router.post('/call-disc-api', async (req, res) => {
+    const input = req.body;
+    const processType = input.processType;
+    const discoveryApiRequestQuery = (processType == 'crd') ? process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY : (processType == 'dtr') ? process.env.SALESFORCE_DTR_DISCOVERY_API_QUERY : null;
     const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
-    const discoveryApiRequestUrl = path.join(instanceUrl, process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY);
+    const discoveryApiRequestUrl = path.join(instanceUrl, discoveryApiRequestQuery);
 
     try {
         const response = await axios.get(discoveryApiRequestUrl, {
@@ -270,6 +273,10 @@ router.get('/payer-login', (req, res) => {
 
 router.get('/order-select-form', (req,res)=>{
     res.render('orderSelectRequest')
+})
+
+router.get('/retrieve-questionnaire-form', (req,res)=>{
+    res.render('retrieveQuestionnaireRequest')
 })
 
 router.get('/payer/callback', (req, res) => { 
