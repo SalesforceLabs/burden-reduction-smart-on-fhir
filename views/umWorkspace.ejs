@@ -51,8 +51,9 @@
               });
 
         } else if (processType === 'dtr') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Document Template & Rules', serviceName: 'some_dtr' }) %>`;
+            callDiscoveryApi({
+                processType:processType
+              });
         }
         else if (processType === 'pas') {
             processTypeContent.classList.add('active');
@@ -88,9 +89,7 @@
     }
     function callDiscoveryApi(data){
         console.log('Discovery called with data:', data);
-        if (data.processType == 'crd') {
-           invokeCrdDiscoveryApi(data.input);
-        }
+        invokeDiscoveryApi(data.processType);
      }
 
      function invokeCrdApi(data){
@@ -132,7 +131,7 @@
         });
      }
 
-     function invokeCrdDiscoveryApi(data){
+     function invokeDiscoveryApi(data){
         var spinner = document.getElementById('spinner');
         var backdrop = document.getElementById('backdrop');
 
@@ -144,7 +143,10 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body : JSON.stringify({
+                processType : data
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -205,6 +207,8 @@
         console.log('Row Data:', rowData);
         if(rowData.Type == "HlsClinicalDecisionSupport" && rowData.SubType == "ProcessOrderEcho"){
             window.location.href = '/order-select-form';
+        }else if(rowData.Type == "HlsDTR" && rowData.SubType == "RetrieveQuestionnaire"){
+            window.location.href = '/retrieve-questionnaire-form';
         }else{
             fetch('/useService', {
                 method: 'POST',
