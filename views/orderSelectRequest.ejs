@@ -5,7 +5,6 @@
         <div class="text-center title pb-2">
             <h2 class="heading-style">Medication/Service Request</h2>
             <span>Select a Medication/Service to verify its coverage.</span>
-            <hr>
         </div>
         <form onsubmit="return createOrderSelectInputRefined(event);">
             <div class="form-group">
@@ -320,7 +319,7 @@
 
                 Object.keys(requestForms).forEach(key => {
                     let requestDetails = requestForms[key];
-                    requestStructure.context.resources.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
+                    requestStructure.context.draftOrders.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
                 });
         
                 requestStructure.prefetch.patient = selectedpatient;
@@ -338,25 +337,25 @@
     function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
         if(requestDetails.selectedRequestType  == "service"){
             let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
-            serviceRequest.id = "service-"+Date.now();
-            serviceRequest.entryInfo.code.text = requestDetails.selectedService.text;
-            serviceRequest.entryInfo.code.coding[0].system = requestDetails.selectedService.system;
-            serviceRequest.entryInfo.code.coding[0].code = requestDetails.selectedService.code;
-            serviceRequest.entryInfo.quantity.value = requestDetails.selectedQuantity;
-            serviceRequest.entryInfo.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
-            serviceRequest.entryInfo.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+            serviceRequest.resource.id = "service-"+Date.now();
+            serviceRequest.resource.code.text = requestDetails.selectedService.text;
+            serviceRequest.resource.code.coding[0].system = requestDetails.selectedService.system;
+            serviceRequest.resource.code.coding[0].code = requestDetails.selectedService.code;
+            serviceRequest.resource.quantity.value = requestDetails.selectedQuantity;
+            serviceRequest.resource.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
+            serviceRequest.resource.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
             return serviceRequest;
         } else {
 
             let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
-            medicationRequest.id = "medication-"+Date.now();
-            medicationRequest.entryInfo.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
-            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
-            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
-            medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
-            medicationRequest.entryInfo.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
-            medicationRequest.entryInfo.effectiveDosePeriod.start = requestDetails.selectedStartDate;
-            medicationRequest.entryInfo.effectiveDosePeriod.end = requestDetails.selectedEndDate;
+            medicationRequest.resource.id = "medication-"+Date.now();
+            medicationRequest.resource.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
+            medicationRequest.resource.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+            medicationRequest.resource.effectiveDosePeriod.start = requestDetails.selectedStartDate;
+            medicationRequest.resource.effectiveDosePeriod.end = requestDetails.selectedEndDate;
             return medicationRequest;
         }
     }
@@ -382,14 +381,14 @@
                 if (data.success) {
                     let requestStructure = data.data;
                     requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
-                    let serviceRequest = requestStructure.context.resources.entry[0];
-                    serviceRequest.id = "service-"+Date.now();
-                    serviceRequest.entryInfo.code.text = selectedService.text;
-                    serviceRequest.entryInfo.code.coding[0].system = selectedService.system;
-                    serviceRequest.entryInfo.code.coding[0].code = selectedService.code;
-                    serviceRequest.entryInfo.quantity.value = selectedQuantity;
-                    serviceRequest.entryInfo.occurrence.occurrencePeriod.start = selectedStartDate;
-                    serviceRequest.entryInfo.occurrence.occurrencePeriod.end = selectedEndDate;
+                    let serviceRequest = requestStructure.context.draftOrders.entry[0];
+                    serviceRequest.resource.id = "service-"+Date.now();
+                    serviceRequest.resource.code.text = selectedService.text;
+                    serviceRequest.resource.code.coding[0].system = selectedService.system;
+                    serviceRequest.resource.code.coding[0].code = selectedService.code;
+                    serviceRequest.resource.quantity.value = selectedQuantity;
+                    serviceRequest.resource.occurrence.occurrencePeriod.start = selectedStartDate;
+                    serviceRequest.resource.occurrence.occurrencePeriod.end = selectedEndDate;
                     requestStructure.prefetch.patient = selectedpatient;
                     requestStructure.prefetch.practitioner = selectedPractitioner;
                     requestStructure.prefetch.location = selectedLocation;
@@ -412,17 +411,17 @@
                 if (data.success) {
                     let requestStructure = data.data;
                     requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
-                    let medicationRequest = requestStructure.context.resources.entry[0];
-                    medicationRequest.id = "medication-"+Date.now();
+                    let medicationRequest = requestStructure.context.draftOrders.entry[0];
+                    medicationRequest.resource.id = "medication-"+Date.now();
                     
-                    medicationRequest.entryInfo.medicationCodeableConcept.text = selectedMedication.text;
-                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].system = selectedMedication.system;
-                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].code = selectedMedication.code;
-                    medicationRequest.entryInfo.medicationCodeableConcept.coding[0].display = selectedMedication.text;
+                    medicationRequest.resource.medicationCodeableConcept.text = selectedMedication.text;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].system = selectedMedication.system;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].code = selectedMedication.code;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].display = selectedMedication.text;
                     
-                    medicationRequest.entryInfo.dispenseRequest.quantity.value = selectedQuantity;
-                    medicationRequest.entryInfo.effectiveDosePeriod.start = selectedStartDate;
-                    medicationRequest.entryInfo.effectiveDosePeriod.end = selectedEndDate;
+                    medicationRequest.resource.dispenseRequest.quantity.value = selectedQuantity;
+                    medicationRequest.resource.effectiveDosePeriod.start = selectedStartDate;
+                    medicationRequest.resource.effectiveDosePeriod.end = selectedEndDate;
                     requestStructure.prefetch.patient = selectedpatient;
                     requestStructure.prefetch.practitioner = selectedPractitioner;
                     requestStructure.prefetch.location = selectedLocation;

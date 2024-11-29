@@ -15,7 +15,7 @@
             "userId": "PractitionerRole/123",
             "patientId": "1288992",
             "encounterId": "89284",
-            "resources": {
+            "draftOrders": {
                 "resourceType": "Bundle",
                 "crdCoverage": {
                     "beneficiary": "sdsdfcsd",
@@ -128,9 +128,9 @@
         }
     },
     "medicationRequest": {
-        "resourceType": "MedicationRequest",
-        "id": "smart-MedicationRequest-103",
-        "entryInfo": {
+        "resource": {
+          "resourceType": "MedicationRequest",
+          "id": "smart-MedicationRequest-103",
           "meta": {
             "lastUpdated": "2018-04-30T13:25:40.845-04:00"
           },
@@ -168,9 +168,9 @@
         }
       },
     "serviceRequest": {
-        "resourceType": "ServiceRequest",
-        "id": "MRI-59879846",
-        "entryInfo": {
+        "resource": {
+          "resourceType": "ServiceRequest",
+          "id": "MRI-59879846",
           "status": "draft",
           "intent": "plan",
           "code": {
