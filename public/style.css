@@ -35,7 +35,11 @@ body {
 .content {
   padding-top: 0;
   position: relative; 
-  z-index: 1;
+  z-index: auto;
+}
+
+.modalTop {
+  z-index: 1051;
 }
 
 .card {
@@ -91,6 +95,14 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.modal-backdrop {
+  z-index: 999;
+}
+
+.modal {
+  z-index: 1000;
 }
 
 .backdrop {

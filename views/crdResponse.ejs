@@ -7,7 +7,7 @@
     </div>
 
     <div class="cardContainer">
-        <% if (operationalOutcome.issue[0].severity != 'error') { %>
+        <% if (operationalOutcome && operationalOutcome.issue[0].severity != 'error') { %>
             <% cards.forEach(function(card, index) { const action=systemActions[index]; // Get corresponding systemAction
                 const modalId='modal-' + index; // Unique ID for each modal %>
                 <div class="card">
@@ -24,7 +24,7 @@
                   </div>
 
                 <!-- Modal for System Action -->
-                <div class="modal fade" id="<%= modalId %>" tabindex="-1" aria-labelledby="modalLabel-<%= index %>"
+                <div class="modal fade modalTop" id="<%= modalId %>" tabindex="-1" aria-labelledby="modalLabel-<%= index %>"
                     aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -40,41 +40,41 @@
                                         <%= action.description %>
                                     </p>
                                     <p class="card-text"><strong>Resource Type:</strong>
-                                        <%= action.resource.resourceType %>
+                                        <%= action.resourceType %>
                                     </p>
 
-                                    <% if (action.resource.resourceType==='MedicationRequest' ) { %>
+                                    <% if (action.resourceType==='MedicationRequest' ) { %>
                                         <p class="card-text"><strong>Medication:</strong>
-                                            <%= action.resource.entryInfo.medicationCodeableConcept.text %>
+                                            <%= action.resource.medicationCodeableConcept.text %>
                                         </p>
                                         <p class="card-text"><strong>Effective Period:</strong>
-                                            <%= action.resource.entryInfo.effectiveDosePeriod.start %> to <%=
-                                                    action.resource.entryInfo.effectiveDosePeriod.end %>
+                                            <%= action.resource.effectiveDosePeriod.start %> to <%=
+                                                    action.resource.effectiveDosePeriod.end %>
                                         </p>
                                         <% } %>
 
                                             <p class="card-text"><strong>Status:</strong>
-                                                <%= action.resource.entryInfo.status %>
+                                                <%= action.resource.status %>
                                             </p>
                                             <p class="card-text"><strong>Intent:</strong>
-                                                <%= action.resource.entryInfo.intent %>
+                                                <%= action.resource.intent %>
                                             </p>
 
-                                            <% if (action.resource.extension) { %>
+                                            <% if (action.extension) { %>
                                                 <hr>
                                                 <h6 class="card-subtitle mb-2 text-muted">Extensions</h6>
-                                                <% Object.keys(action.resource.extension).forEach(function(key) { %>
+                                                <% Object.keys(action.extension).forEach(function(key) { %>
                                                     <p class="card-text"><strong>
                                                             <%= key %>:
                                                         </strong>
-                                                        <%= action.resource.extension[key].value !== undefined ?
-                                                            action.resource.extension[key].value :
-                                                            action.resource.extension[key].valueString !== undefined ?
-                                                            action.resource.extension[key].valueString : 
-                                                            action.resource.extension[key].valueDate !== undefined ?
-                                                            action.resource.extension[key].valueDate :
-                                                            action.resource.extension[key].valueContactPoint !== undefined ?
-                                                            action.resource.extension[key].valueContactPoint : null%>
+                                                        <%= action.extension[key].value !== undefined ?
+                                                            action.extension[key].value :
+                                                            action.extension[key].valueString !== undefined ?
+                                                            action.extension[key].valueString : 
+                                                            action.extension[key].valueDate !== undefined ?
+                                                            action.extension[key].valueDate :
+                                                            action.extension[key].valueContactPoint !== undefined ?
+                                                            action.extension[key].valueContactPoint : null%>
                                                     </p>
                                                     <% }); %>
                                                         <% } %>
