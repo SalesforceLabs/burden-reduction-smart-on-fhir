@@ -8,12 +8,9 @@
 
 /* Body Styling */
 body {
-    background-color: #f5f5f5;
-    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
 }
 
 /* Form Styling */
@@ -133,9 +130,9 @@ button:hover {
 
 .form-container {
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 20px; /* Optional padding for spacing */
+    justify-content: center; 
+    align-items: center; 
+    padding: 20px;
 }
 
 .questionnaire-container{
@@ -145,4 +142,8 @@ button:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
     size: 12px;
+}
+
+.questionnaire-div{
+
 }

@@ -1,0 +1,59 @@
+<%- include('header') -%>
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <div class="title pb-5">
+            <h1 class="heading-style">Required Questionnaires</h1>
+            <span>Please fill these questionnaires</span>
+            <hr>
+            <%
+            const allSuccess = operationOutcome.every(outcome => outcome.code === "success");
+            %>
+            <% if (allSuccess) { %>
+                <table border="1">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Questionnaire Name</th>
+                      <th>Already Filled</th>
+                      <th>Fill Questionnaire</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% questionnaireIds.forEach((item, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td> 
+                        <td>Questionnaire <%= index + 1 %></td> 
+                        <td class="filled-checkbox">
+                            <input 
+                              type="checkbox" 
+                              <%= item.isFilled ? "checked" : "" %> 
+                              onchange="handleCheckboxChange('<%= item.Id %>', this.checked)">
+                          </td>
+                        <td>
+                          <button class="fillQuestionnaireButton" onclick="handleQuestionnaireClick('<%= item.Id %>')">
+                            Fill Questionnaire
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              <% } else { %>
+                <p>We could not fetch questionnaires!</p>
+              <% } %>
+        </div>
+    </div>
+ </div>
+ <%- include('footer') -%> 
+ 
+ <script>
+  function handleQuestionnaireClick(questionnaireId) {
+    window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}`;
+  }
+
+  // Handler for checkbox changes
+  function handleCheckboxChange(questionnaireId, isChecked) {
+    console.log(`Questionnaire ID: ${questionnaireId}, Is Filled: ${isChecked}`);
+    // Add your logic here to handle the change in state
+  }
+ </script>

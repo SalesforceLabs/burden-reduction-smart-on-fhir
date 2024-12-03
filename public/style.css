@@ -198,6 +198,22 @@ th {
   background-color: #45a049;
 }
 
+.filled-checkbox {
+  text-align: center;
+}
+
+.fillQuestionnaireButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.fillQuestionnaireButton:hover {
+  background-color: #0056b3;
+}
+
 .main-heading {
   font-size: 48px;
   color: #0c87b8;
@@ -318,6 +334,7 @@ select {
 
 header {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between; /* Spread out items */
   background-color: white; /* Optional background color */
