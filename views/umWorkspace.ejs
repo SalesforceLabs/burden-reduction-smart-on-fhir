@@ -15,7 +15,7 @@
                     <div class="input-group-prepend">
                       <label class="input-group-text bg-info text-white" for="inputGroupSelect01">Select Service</label>
                     </div>
-                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType()">
+                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType(this.value)">
                         <option selected>Choose...</option>
                         <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
                         <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
@@ -36,7 +36,18 @@
 <%- include('footer') -%>
 
 <script>
-    function loadProcessType() {
+    const contextId = '<%= contextId %>';
+    const selectedProcessType = '<%= selectedProcessType %>';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectElement = document.getElementById("processTypeDropdown");
+        if (selectedProcessType && selectElement) {
+        selectElement.value = selectedProcessType;
+        selectElement.onchange();
+        }
+      });
+
+    function loadProcessType(passedValue) {
         const processType = document.getElementById('processTypeDropdown').value;
         const processTypeContent = document.getElementById('processTypeContent');
         const responseContainer = document.getElementById('responseContainer');
