@@ -225,8 +225,8 @@ router.post('/useService', async (req, res) => {
     .catch(err => console.error('Update failed:', err));   
 });
 
-router.post('/launchDtr', async (req, res) => {
-    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
+router.post('/fetchQuestionnaire', async (req, res) => {
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],);
     const getQuestionnaireApiUrlBase = path.join(instanceUrl, process.env.SALESFORCE_DTR_GET_QUESTIONNAIRE_API_QUERY);
     const omniprocessId = req.body.userInput;
     const getQuestionnaireApiUrl = path.join(getQuestionnaireApiUrlBase, omniprocessId) + process.env.SALESFORCE_DTR_GET_QUESTIONNAIRE_API_QUERY_PARAMETER;
@@ -247,6 +247,53 @@ router.post('/launchDtr', async (req, res) => {
         console.error('Error making call to Get Questionnaire API:', error);
         res.send('Sorry');
     }
+});
+
+router.post('/fetchQuestionnaireResponse', async (req, res) => {
+    try {
+        const questionnaireId = req.body.questionnaireId;
+        const filePath = path.join(__dirname, `config/questionnaireList.json`);
+        const questionnaireList  = fileUpdater.getFile(filePath);
+
+        if(questionnaireList) {
+            const foundElement = questionnaireList.questionnaireIds.find(element => element.Id === questionnaireId);
+            if(foundElement) {
+                return res.status(200).json({ success: true, data: foundElement.response});
+            } else {
+                return res.status(200).json({success: false});
+            }
+        }
+    } catch (error) {
+        console.error('Error in /fetchQuestionnaireResponse:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+});
+
+
+
+router.post('/handleQuestionnaireSubmit', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const questionnaireList  = fileUpdater.getFile(filePath);
+
+    const formResponse = req.body.response;
+    const questionnaireId = req.body.questionnaireId;
+
+    questionnaireList.questionnaireIds.forEach(item => {
+        if(item.Id == questionnaireId){
+            item.response  = formResponse;
+            item.isFilled  = true;
+        }
+    });
+
+    fileUpdater.updateFile(filePath, {
+        questionnaireIds : questionnaireList.questionnaireIds
+    })
+    .then(() => {
+        console.log('Update complete for questionnaires');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err)); 
+
 });
 
 
@@ -345,8 +392,12 @@ router.get('/payer/crdResponse', (req, res) => {
 });
 
 router.get('/UM-Workspace', (req, res) => {
+    const contextId = req.query.contextId;
+    const selectedProcessType = req.query.selectedProcessType;
     res.render('umWorkspace',{
         title:"UM Workspace",
+        contextId: contextId,
+        selectedProcessType: selectedProcessType
     });
 });
 
@@ -393,9 +444,25 @@ router.get('/loadQuestionnaire', (req, res) => {
     })
 });
 
-router.get('/launchDtr', (req, res) => {
-    res.render('launchDtr', {
-        title:"DTR Questionnaire"
+router.get('/launchQuestionnaire', (req, res) => {
+    const contextId = req.query.contextId;
+    res.render('launchQuestionnaire', {
+        title:"DTR Portal",
+        contextId: contextId
+    })
+});
+
+router.get('/dtrResponse', (req, res) => {
+    const questionnaireList = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/questionnaireList.json')));
+    const payload = {
+        "questionnaireIds": questionnaireList.questionnaireIds,
+        "operationOutcome": questionnaireList.operationOutcome
+    }
+    res.render('dtrResponse', {
+        title:"DTR Questionnaires",
+        questionnaireIds : payload.questionnaireIds,
+        operationOutcome : payload.operationOutcome
+
     })
 });
 
