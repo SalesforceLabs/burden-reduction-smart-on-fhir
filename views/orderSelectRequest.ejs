@@ -89,65 +89,6 @@
     document.getElementById('endDate').valueAsDate = new Date();
     document.getElementById('quantity').value = 0;
 
-    function handlePatient() {
-        const pieterDetails = JSON.stringify({
-            "resourceType": "Patient",
-            "gender": "Male",
-            "birthDate": "1985-12-23",
-            "subscriberId": "1288992",
-            "active": true,
-            "identifier": [
-                {
-                    "use": "usual",
-                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
-                    "value": "738472983"
-                },
-                {
-                    "use": "usual",
-                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3"
-                }
-            ],
-            "name": [
-                {
-                    "use": "usual",
-                    "family": "van de Heuvel",
-                    "given": [
-                        "Pieter"
-                    ],
-                    "suffix": [
-                        "MSc"
-                    ]
-                }
-            ]
-        });
-        const charlesDetails = JSON.stringify({
-            "resourceType": "Patient",
-            "gender": "Male",
-            "birthDate": "1985-12-23",
-            "subscriberId": "",
-            "active": true,
-            "identifier": [],
-            "name": [
-                {
-                    "use": "usual",
-                    "family": "Green",
-                    "given": [
-                        "Charles"
-                    ],
-                    "suffix": [
-                        "MSc"
-                    ]
-                }
-            ]
-        });
-        const selected = document.getElementById('patient-select').value;
-        if(selected == "001SB00000MNQI5YAP")
-            selectedpatient = pieterDetails;
-        else{
-            selectedpatient = charlesDetails;
-        }
-    }
-
     function handleRequestType(formCount) {
         selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
         disableForRequestTypeSelection(formCount);
@@ -220,85 +161,6 @@
         populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
     }
     
-    function handlePractitioner() {
-        const pieterPractionerDetails = JSON.stringify({
-            "resourceType": "practitioner",
-            "gender": "Male",
-            "birthDate": "1988-1-23",
-            "id": "1288992",
-            "active": true,
-            "identifier": [
-                {
-                    "use": "npi",
-                    "system": "urn:oid:2.16.528.1.1007.3.1",
-                    "value": "938273695"
-                },
-                {
-                    "use": "usual",
-                    "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
-                    "value": "129IDH4OP733"
-                }
-            ],
-            "name": [
-                {
-                    "use": "usual",
-                    "family": "van de Heuvel",
-                    "given": [
-                        "Practitioner"
-                    ],
-                    "suffix": [
-                        "MSc"
-                    ]
-                }
-            ],
-            "additionalInfo": {
-                "telecom": [
-                    {
-                        "system": "phone",
-                        "value": "0648352638",
-                        "use": "mobile"
-                    },
-                    {
-                        "system": "email",
-                        "value": "p.heuvel@gmail.com",
-                        "use": "home"
-                    }
-                ],
-                "address": [
-                    {
-                        "use": "home",
-                        "line": [
-                            "Van Egmondkade 23"
-                        ],
-                        "city": "Amsterdam",
-                        "postalCode": "1024 RJ",
-                        "country": "NLD"
-                    }
-                ]
-            }
-        });
-        const selected = document.getElementById('practitioner-select').value;
-            selectedPractitioner = pieterPractionerDetails;
-    }
-    
-    function handleLocation() {
-        const locationDetails = JSON.stringify({
-            "resourceType": "Location",
-            "status": "active",
-            "name": "Washington, DC metro area",
-            "identifier": [
-                {
-                    "value": "B1-S.F2"
-                },
-                {
-                    "value": "B1-S.F2.1.00"
-                }
-            ]
-        });
-        const selected = document.getElementById('location-select').value;
-        selectedLocation = locationDetails;
-    }
-
     function createOrderSelectInputRefined() {
         event.preventDefault();        
 
@@ -337,7 +199,7 @@
     function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
         if(requestDetails.selectedRequestType  == "service"){
             let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
-            serviceRequest.resource.id = "service-"+Date.now();
+            serviceRequest.resource.id = "service-"+Date.now()+ Math.floor(Math.random() * 1000);
             serviceRequest.resource.code.text = requestDetails.selectedService.text;
             serviceRequest.resource.code.coding[0].system = requestDetails.selectedService.system;
             serviceRequest.resource.code.coding[0].code = requestDetails.selectedService.code;
@@ -348,7 +210,7 @@
         } else {
 
             let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
-            medicationRequest.resource.id = "medication-"+Date.now();
+            medicationRequest.resource.id = "medication-"+Date.now()+ Math.floor(Math.random() * 1000);
             medicationRequest.resource.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
             medicationRequest.resource.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
             medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
@@ -360,82 +222,6 @@
         }
     }
     
-    
-    
-    
-    
-    function createOrderSelectInput(){
-        event.preventDefault(); 
-
-        selectedStartDate = document.getElementById("startDate").value;
-        selectedEndDate = document.getElementById("endDate").value;
-        if(selectedRequestType == "service"){
-            fetch('/read-order-select-service-sample-structure', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let requestStructure = data.data;
-                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
-                    let serviceRequest = requestStructure.context.draftOrders.entry[0];
-                    serviceRequest.resource.id = "service-"+Date.now();
-                    serviceRequest.resource.code.text = selectedService.text;
-                    serviceRequest.resource.code.coding[0].system = selectedService.system;
-                    serviceRequest.resource.code.coding[0].code = selectedService.code;
-                    serviceRequest.resource.quantity.value = selectedQuantity;
-                    serviceRequest.resource.occurrence.occurrencePeriod.start = selectedStartDate;
-                    serviceRequest.resource.occurrence.occurrencePeriod.end = selectedEndDate;
-                    requestStructure.prefetch.patient = selectedpatient;
-                    requestStructure.prefetch.practitioner = selectedPractitioner;
-                    requestStructure.prefetch.location = selectedLocation;
-                    invokeCrdApi(requestStructure);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-        else if(selectedRequestType == "medication"){
-            fetch('/read-order-select-medication-sample-structure', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let requestStructure = data.data;
-                    requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
-                    let medicationRequest = requestStructure.context.draftOrders.entry[0];
-                    medicationRequest.resource.id = "medication-"+Date.now();
-                    
-                    medicationRequest.resource.medicationCodeableConcept.text = selectedMedication.text;
-                    medicationRequest.resource.medicationCodeableConcept.coding[0].system = selectedMedication.system;
-                    medicationRequest.resource.medicationCodeableConcept.coding[0].code = selectedMedication.code;
-                    medicationRequest.resource.medicationCodeableConcept.coding[0].display = selectedMedication.text;
-                    
-                    medicationRequest.resource.dispenseRequest.quantity.value = selectedQuantity;
-                    medicationRequest.resource.effectiveDosePeriod.start = selectedStartDate;
-                    medicationRequest.resource.effectiveDosePeriod.end = selectedEndDate;
-                    requestStructure.prefetch.patient = selectedpatient;
-                    requestStructure.prefetch.practitioner = selectedPractitioner;
-                    requestStructure.prefetch.location = selectedLocation;
-                    invokeCrdApi(requestStructure);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-
-        return false;
-      }
-
     function disableForRequestTypeSelection(formCount){
         selectedService = null;
         selectedMedication = null;
