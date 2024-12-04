@@ -205,6 +205,7 @@
 
     function submitRowData(rowIndex) {
         const form = document.getElementById('form-' + rowIndex);
+        var querySuffix = '';
 
         const formData = new FormData(form);
         
@@ -214,12 +215,16 @@
             rowData[key] = value;
         });
 
+        if(contextId) {
+            querySuffix = `?contextId=${contextId}`;
+        }
+
         // Log the rowData to see the values
         console.log('Row Data:', rowData);
         if(rowData.Type == "HlsClinicalDecisionSupport" && rowData.SubType == "ProcessOrderEcho"){
-            window.location.href = '/order-select-form';
+            window.location.href = '/order-select-form'+querySuffix;
         }else if(rowData.Type == "HlsDTR" && rowData.SubType == "RetrieveQuestionnaire"){
-            window.location.href = '/retrieve-questionnaire-form';
+            window.location.href = '/retrieve-questionnaire-form'+querySuffix;
         }else{
             fetch('/useService', {
                 method: 'POST',
