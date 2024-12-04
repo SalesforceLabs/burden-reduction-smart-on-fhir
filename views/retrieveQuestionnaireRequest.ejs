@@ -2,9 +2,22 @@
 
 <div class="center-div">
     <div class="container w-80 border py-3">
-        <div class="text-center title pb-2">
-            <img src="/assets/Page_under_maintainence.png" class="large-image" >
+        <h3 class="text-center">Retrieve Questionnaire Request Form</h3>
+        <form id="retrieveForm" method="POST" action="/retrieve-questionnaire-form">
+            <div class="form-group">
+                <label for="jsonInput">Enter JSON Input:</label>
+                <textarea class="form-control" id="jsonInput" name="jsonInput" rows="10" placeholder="Enter JSON input"></textarea>
+            </div>
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+        <% if (root) { %>
+        <div class="mt-5">
+            <h5>Response:</h5>
+            <pre><code><%= JSON.stringify(root, null, 2) %></code></pre>
         </div>
+        <% } %>
     </div>
 </div>
 

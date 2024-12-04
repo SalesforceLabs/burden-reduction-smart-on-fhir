@@ -275,9 +275,41 @@ router.get('/order-select-form', (req,res)=>{
     res.render('orderSelectRequest')
 })
 
-router.get('/retrieve-questionnaire-form', (req,res)=>{
-    res.render('retrieveQuestionnaireRequest')
-})
+
+router.post('/retrieve-questionnaire-form', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const jsonInput = req.body.jsonInput;
+    const apiUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE + "/HlsDTR_RetrieveQuestionnaire");
+    console.log(apiUrl);
+
+    try {
+        const response = await axios.post(apiUrl, JSON.parse(jsonInput), {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: response.data,
+        });
+    } catch (error) {
+        console.error('Error making call to Retrieve Questionnaire API:', error.message);
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: { error: error.message },
+        });
+    }
+});
+
+router.get('/retrieve-questionnaire-form', (req, res) => {
+    res.render('retrieveQuestionnaireRequest', {
+        title: "Retrieve Questionnaire Request Form",
+        root: null,
+    });
+});
+
+
 
 router.get('/payer/callback', (req, res) => { 
     res.render('callback', {
