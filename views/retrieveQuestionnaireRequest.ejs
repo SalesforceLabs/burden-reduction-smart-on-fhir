@@ -86,6 +86,9 @@
             let referencedForms = {};
             let coverage = {};
 
+            const params = new URLSearchParams(window.location.search);
+            const contextId = params.get('contextId');
+
 
 
             function handleRequestType(formCount) {
@@ -268,6 +271,13 @@
                                 requestStructure.referenced.push(getReferencedNode(referencedDetails));
                             });
 
+                            if (contextId) {
+                                requestStructure.context = contextId;
+                            }
+                            else {
+                                delete requestStructure.context;
+                            }
+
                             requestStructure.coverage[0].identifier[0].system = coverage.system;
                             requestStructure.coverage[0].identifier[0].code = coverage.code;
                             requestStructure.coverage[0].period.start = coverage.start;
@@ -277,10 +287,49 @@
 
 
                             console.log(requestStructure);
+                            invokeRetrieveQuestionnaire(requestStructure)
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                    });
+            }
+
+            function invokeRetrieveQuestionnaire(data) {
+                var spinner = document.getElementById('spinner');
+                var backdrop = document.getElementById('backdrop');
+
+                // Show the spinner
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+
+                fetch('/invoke-ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        input: data,
+                        ipName: "HlsDTR_RetrieveQuestionnaire",
+                        ipSubtype: "RetrieveQuestionnaire"
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Hide the spinner after receiving the response
+                            spinner.style.display = 'none';
+                            backdrop.style.display = 'none';
+                            console.log(data.data)
+                            window.location.href = "/dtrResponseWithPayload?data=" + JSON.stringify(data.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Error:', error);
+
+                        // Hide the spinner after receiving the response
+                        spinner.style.display = 'none';
+                        backdrop.style.display = 'none';
                     });
             }
 

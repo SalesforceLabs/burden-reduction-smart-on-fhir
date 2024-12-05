@@ -472,6 +472,21 @@ router.get('/dtrResponse', (req, res) => {
     })
 });
 
+router.get('/dtrResponseWithPayload', (req, res) => {
+    const questionnaireList = JSON.parse(req.query.data);
+    let re =req.query;
+    const payload = {
+        "questionnaireIds": questionnaireList.questionnaireIds,
+        "operationOutcome": questionnaireList.operationOutcome
+    }
+    res.render('dtrResponse', {
+        title:"DTR Questionnaires",
+        questionnaireIds : payload.questionnaireIds,
+        operationOutcome : payload.operationOutcome
+
+    })
+});
+
 router.get('/typeAhead', (req, res) => {
     res.render('typeAheadUse', {
         title:"Use Typeahead",
