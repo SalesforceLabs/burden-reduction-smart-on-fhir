@@ -1,0 +1,139 @@
+{
+    "base": {
+        "context": "1MOSG000000ErR34AK",
+        "referenced": [
+            
+        ],
+        "coverage": [
+            {
+                "id": "9876B1",
+                "identifier": [
+                    {
+                        "system": "http://benefitsinc.com/certificate",
+                        "value": "12345"
+                    }
+                ],
+                "status": "active",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                            "code": "EHCPOL",
+                            "display": "extended healthcare"
+                        }
+                    ]
+                },
+                "policyHolder": {
+                    "reference": "http://benefitsinc.com/FHIR/Organization/CBI35"
+                },
+                "subscriber": {
+                    "reference": "ok234567xx"
+                },
+                "beneficiary": {
+                    "reference": "ok234567xx"
+                },
+                "dependent": "0",
+                "relationship": {
+                    "coding": [
+                        {
+                            "code": "self"
+                        }
+                    ]
+                },
+                "period": {
+                    "start": "2011-05-23",
+                    "end": "2012-05-23"
+                },
+                "payor": [
+                    {
+                        "reference": "Organization/2"
+                    }
+                ]
+            }
+        ],
+        "order": [
+        ]
+    },
+    "medicationRequest": {
+        "resource": {
+            "resourceType": "MedicationRequest",
+            "id": "smart-MedicationRequest-103",
+            "meta": {
+                "lastUpdated": "2018-04-30T13:25:40.845-04:00"
+            },
+            "text": {
+                "status": "generated",
+                "div": "<div>Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension (rxnorm: 617993)</div>"
+            },
+            "status": "draft",
+            "intent": "order",
+            "medicationCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                        "code": "617993",
+                        "display": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+                    }
+                ],
+                "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+            },
+            "subject": {
+                "reference": "Patient/1288992"
+            },
+            "effectiveDosePeriod": {
+                "start": "2024-07-06",
+                "end": "2024-07-10"
+            },
+            "dispenseRequest": {
+                "quantity": {
+                    "value": 6,
+                    "unit": "TAB",
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-orderableDrugForm",
+                    "code": "TAB"
+                }
+            }
+        }
+    },
+    "serviceRequest": {
+        "resource": {
+            "resourceType": "ServiceRequest",
+            "id": "MRI-59879846",
+            "status": "draft",
+            "intent": "plan",
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                        "code": "617994"
+                    }
+                ],
+                "text": "MRA Knee Vessels Right"
+            },
+            "subject": {
+                "reference": "Patient/MRI-59879846"
+            },
+            "reasonCode": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/sid/icd-10",
+                            "code": "S83.511",
+                            "display": "Sprain of anterior cruciate ligament of right knee"
+                        }
+                    ]
+                }
+            ],
+            "quantity": {
+                "value": 1
+            },
+            "occurrence": {
+                "occurrenceDateTime": "2024-07-15",
+                "occurrencePeriod": {
+                    "start": "2024-07-15",
+                    "end": "2024-07-15"
+                },
+                "occurrenceTiming": "<>"
+            }
+        }
+    }
+}
