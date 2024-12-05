@@ -474,7 +474,7 @@ router.get('/dtrResponse', (req, res) => {
 
 router.get('/dtrResponseWithPayload', (req, res) => {
     const questionnaireList = JSON.parse(req.query.data);
-    let re =req.query;
+    
     const payload = {
         "questionnaireIds": questionnaireList.questionnaireIds,
         "operationOutcome": questionnaireList.operationOutcome
