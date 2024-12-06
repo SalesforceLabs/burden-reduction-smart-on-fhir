@@ -70,7 +70,7 @@ return formHTML;
 
     $('#dynamicRequestForms').on('click', `.removeForm`, function () {
         const formId = $(this).data('id');
-        if ($('.form-container').length > 1) {
+        if ($('#dynamicRequestForms .form-container').length > 1) {
             $(`#${formId}`).remove();
             delete requestForms[formId];
         } else {

@@ -1,24 +1,447 @@
-<%- include('header', {title: "Retrieve Questionnaire Request Form"}) -%>
+<%- include('header', { title: "Retrieve Questionnaire Request Form" }) -%>
+    <div class="center-div">
+        <div class="container w-80 border py-3">
+            <div class="text-center title pb-2">
+                <h2 class="heading-style">Retrieve Questionnaire</h2>
+                <span>Select a Patient and Member Plan to autopopulate some fields.</span>
+            </div>
+            <form onsubmit="return creteRetrieveQuestionnaireInput(event);">
+                <div class="form-group">
+                    <h3 class="font-weight-bold">Patient & Member Plan Details</h3>
+                </div>
+                <div class="form-group row mb-3">
+                    <div class="col-md-6">
+                        <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
+                            , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                            listId: 'patientSuggestionList' , onClickFunction: 'handlePatientSelection' ,
+                            condition: 'WHERE IsPersonAccount=true' }) -%>
+                    </div>
+                    <div class="col-md-6">
+                        <%- include('typeAhead', { elementId: 'typeAheadMemberPlanSelect' ,
+                            elementLabel: 'Select Member Plan' , elementSourceMethod: '/fetchData' ,
+                            entityName: 'MemberPlan' , fields: ['Id', 'Name' ], listId: 'memberPlanSuggestionList' ,
+                            onClickFunction: 'handleMemberPlanSelection' , condition: '' }) -%>
+                    </div>
+                </div>
+                <div class="form-group pt-2 pb-2">
+                    <h3>Medication/Service Request</h3>
+                </div>
 
-<div class="center-div">
-    <div class="container w-80 border py-3">
-        <h3 class="text-center">Retrieve Questionnaire Request Form</h3>
-        <form id="retrieveForm" method="POST" action="/retrieve-questionnaire-form">
-            <div class="form-group">
-                <label for="jsonInput">Enter JSON Input:</label>
-                <textarea class="form-control" id="jsonInput" name="jsonInput" rows="10" placeholder="Enter JSON input"></textarea>
-            </div>
-            <div class="text-center mt-3">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-        </form>
-        <% if (root) { %>
-        <div class="mt-5">
-            <h5>Response:</h5>
-            <pre><code><%= JSON.stringify(root, null, 2) %></code></pre>
+                <div id="dynamicRequestForms"></div>
+                <div class="row pb-2">
+                    <div class="col">
+                        <div class="btn-right-align">
+                            <button id="addForm" class="btn btn-primary btn-sm" type="button" title="Add a new request">
+                                <i class="fas fa-plus btn-icon"></i>
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group pb-2">
+                    <h3>Referenced</h3>
+                </div>
+
+                <div id="dynamicReferenceForms"></div>
+                <div class="row pb-2">
+                    <div class="col">
+                        <div class="btn-right-align">
+                            <button id="addReferenedItem" class="btn btn-primary btn-sm" type="button"
+                                title="Add a new referenced item">
+                                <i class="fas fa-plus btn-icon"></i>
+                                Add Referenced Item
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group pb-2">
+                    <h3>Coverage</h3>
+                </div>
+
+                <div id="dynamicCoverageForms"></div>
+
+                <hr />
+                <div class="text-center">
+                    <input class="btn btn-primary" type="submit" id="submit" value="Submit" disabled="disabled" />
+                </div>
+            </form>
+
+            <div id="spinner" class="spinner" style="display: none;"></div>
+            <div id="backdrop" class="backdrop" style="display: none;"></div>
         </div>
-        <% } %>
     </div>
-</div>
+    <%- include('footer') -%>
+        <script src="utils/referencedRequestForm.js"></script>
+        <script src="utils/coverageRequestForm.js"></script>
+        <script src="utils/requestForm.js"></script>
+        <script src="utils/typeAheadScript.js"></script>
 
-<%- include('footer') -%>
+        <script>
+            let selectedPatient = null;
+            let selectedMemberPlan = null;
+            let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+            let requestForms = {};
+            let referencedForms = {};
+            let coverage = {};
+
+            const params = new URLSearchParams(window.location.search);
+            const contextId = params.get('contextId');
+
+
+
+            function handleRequestType(formCount) {
+                selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
+                disableForRequestTypeSelection(formCount);
+                if (selectedRequestType == "service") {
+                    document.getElementById(`service-select-${formCount}`).removeAttribute("disabled");
+                }
+                if (selectedRequestType == "medication") {
+                    document.getElementById(`medication-select-${formCount}`).removeAttribute("disabled");
+                }
+                populateRequestForm(formCount, 'selectedRequestType', selectedRequestType);
+            }
+
+            function handleServiceRequest(formCount) {
+                const mraKneeVesselsRight = {
+                    system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    code: "617994",
+                    text: "MRA Knee Vessels Right"
+                };
+                const mraKneeVesselsLeft = {
+                    system: "http://hl7.org/fhir/sid/icd-10",
+                    code: "S83.511",
+                    text: "Test"
+                }
+
+                prepareForMedOrServiceSelection(formCount);
+                const selected = document.getElementById(`service-select-${formCount}`).value;
+                if (selected == "617994") {
+                    selectedService = mraKneeVesselsRight;
+                } else {
+                    selectedService = mraKneeVesselsLeft;
+                }
+                populateRequestForm(formCount, 'selectedService', selectedService);
+            }
+
+            function handleMedicationRequest(formCount) {
+                const amoxicillin = {
+                    system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    code: "617993",
+                    text: "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+                };
+
+                const paracetmol = {
+                    system: "http://www.nlm.nih.gov/research/umls/rxnorm",
+                    code: "617999",
+                    text: "Paracetmol 620 MG"
+                };
+
+                prepareForMedOrServiceSelection(formCount);
+                const selected = document.getElementById(`medication-select-${formCount}`).value;
+                if (selected == "617993") {
+                    selectedMedication = amoxicillin;
+                } else {
+                    selectedMedication = paracetmol;
+                }
+                populateRequestForm(formCount, 'selectedMedication', selectedMedication);
+            }
+
+            async function handlePatientSelection(element) {
+                const $suggestionBox = $('#patientSuggestionList');
+                const $element = $(element);
+                const name = $element.text();
+
+                const data = $element.data();
+                $('#typeAheadPatientSelect').val(name);
+                $suggestionBox.empty();
+
+                const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, 
+                       (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) 
+                       FROM Account WHERE Id = '${data.Id}'`;
+                const param = {
+                    query: query,
+                    isSosl: false,
+                    elementSourceMethod: '/fetchData',
+                };
+                const patientDetails = await fetchData(param);
+                selectedPatient = patientDetails[0];
+                await updateCoverageDetails();
+            }
+
+            async function handleMemberPlanSelection(element) {
+                const $suggestionBox = $('#memberPlanSuggestionList');
+                const $element = $(element);
+                const name = $element.text();
+
+                const data = $element.data();
+                $('#typeAheadMemberPlanSelect').val(name);
+                $suggestionBox.empty();
+
+                const query = `SELECT SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND 
+                       Member.IsPersonAccount = true AND Id = '${data.Id}'`;
+                const param = {
+                    query: query,
+                    isSosl: false,
+                    elementSourceMethod: '/fetchData',
+                };
+                const memberPlanDetails = await fetchData(param);
+                selectedMemberPlan = memberPlanDetails[0];
+                await updateCoverageDetails();
+            }
+
+            async function updateCoverageDetails() {
+                if (!selectedMemberPlan) return;
+                $(`#identifier-system-0`).val(selectedMemberPlan.SourceSystem);
+                coverage.system = selectedMemberPlan.SourceSystem;
+                $(`#identifier-value-0`).val(selectedMemberPlan.SourceSystemIdentifier);
+                coverage.code = selectedMemberPlan.SourceSystemIdentifier;
+
+                if (!selectedPatient) return;
+                $(`#subscriber-0`).val(selectedPatient.SourceSystemIdentifier);
+                coverage.subscriber = selectedPatient.SourceSystemIdentifier;
+
+                $(`#beneficiary-0`).val(selectedPatient.SourceSystemIdentifier);
+                coverage.beneficiary = selectedPatient.SourceSystemIdentifier;
+            }
+
+            function disableForRequestTypeSelection(formCount) {
+                selectedService = null;
+                selectedMedication = null;
+                selectedStartDate = null;
+                selectedEndDate = null;
+                selectedQuantity = 0;
+
+                document.getElementById(`medication-select-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`service-select-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`startDate-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`endDate-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`quantity-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`submit`).setAttribute("disabled", "disabled");
+
+            }
+
+            function prepareForMedOrServiceSelection(formCount) {
+                selectedStartDate = null;
+                selectedEndDate = null;
+                selectedQuantity = 0;
+                document.getElementById('submit').removeAttribute("disabled");
+                document.getElementById(`startDate-${formCount}`).removeAttribute("disabled")
+                document.getElementById(`endDate-${formCount}`).removeAttribute("disabled")
+                document.getElementById(`quantity-${formCount}`).removeAttribute("disabled")
+            }
+
+            function populateRequestForm(id, key, value) {
+                requestForms[`form-${id}`] ??= {};
+                requestForms[`form-${id}`][key] = value;
+            }
+
+            function populateRefernecedForm(id, key, value) {
+                referencedForms[`form-${id}`] ??= {};
+                referencedForms[`form-${id}`][key] = value;
+            }
+
+            function creteRetrieveQuestionnaireInput() {
+                event.preventDefault();
+
+                //fetch base structre
+                fetch('/read-retrieve-questionnaire-sample-structure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let requestStructure = data.data.base;
+                            console.log(requestStructure)
+                            let medicationRequestBase = data.data.medicationRequest;
+                            let serviceRequestBase = data.data.serviceRequest;
+
+                            Object.keys(requestForms).forEach(key => {
+                                let requestDetails = requestForms[key];
+                                console.log(requestDetails, key);
+                                requestStructure.order.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase).resource);
+                            });
+
+                            Object.keys(referencedForms).forEach(key => {
+                                let referencedDetails = referencedForms[key];
+                                requestStructure.referenced.push(getReferencedNode(referencedDetails));
+                            });
+
+                            if (contextId) {
+                                requestStructure.context = contextId;
+                            }
+                            else {
+                                delete requestStructure.context;
+                            }
+
+                            requestStructure.coverage[0].identifier[0].system = coverage.system;
+                            requestStructure.coverage[0].identifier[0].code = coverage.code;
+                            requestStructure.coverage[0].period.start = coverage.start;
+                            requestStructure.coverage[0].period.end = coverage.end;
+                            requestStructure.coverage[0].beneficiary.reference = coverage.beneficiary;
+                            requestStructure.coverage[0].subscriber.reference = coverage.subscriber;
+
+
+                            console.log(requestStructure);
+                            invokeRetrieveQuestionnaire(requestStructure)
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            function invokeRetrieveQuestionnaire(data) {
+                var spinner = document.getElementById('spinner');
+                var backdrop = document.getElementById('backdrop');
+
+                // Show the spinner
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+
+                fetch('/invoke-ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        input: data,
+                        ipName: "HlsDTR_RetrieveQuestionnaire",
+                        ipSubtype: "RetrieveQuestionnaire"
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Hide the spinner after receiving the response
+                            spinner.style.display = 'none';
+                            backdrop.style.display = 'none';
+                            console.log(data.data)
+                            window.location.href = "/dtrResponseWithPayload?data=" + JSON.stringify(data.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Error:', error);
+
+                        // Hide the spinner after receiving the response
+                        spinner.style.display = 'none';
+                        backdrop.style.display = 'none';
+                    });
+            }
+
+            function handleQuantity(formCount) {
+                selectedQuantity = Number(document.getElementById(`quantity-${formCount}`).value);
+                populateRequestForm(formCount, 'selectedQuantity', selectedQuantity);
+            }
+
+            function handleStartDate(formCount) {
+                selectedStartDate = (document.getElementById(`startDate-${formCount}`).value);
+                populateRequestForm(formCount, 'selectedStartDate', selectedStartDate);
+            }
+
+            function handleEndDate(formCount) {
+                selectedEndDate = (document.getElementById(`endDate-${formCount}`).value);
+                populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
+            }
+
+            function handleReferencedResourceType(formCount) {
+                const resourceTypeElement = document.getElementById(`resource-type-referencedRequest-${formCount}`);
+                const selectedResourceType = resourceTypeElement.value;
+
+                populateRefernecedForm(formCount, 'resourceType', selectedResourceType);
+
+            }
+
+            function handleIdentifierCode(formCount) {
+                const identifierCodeElement = document.getElementById(`identifier-code-referencedRequest-${formCount}`);
+                const identifierCode = identifierCodeElement.value;
+                populateRefernecedForm(formCount, 'code', identifierCode);
+                handleReferencedResourceType(formCount);
+
+            }
+
+            function handleIdentifierSystem(formCount) {
+                const identifierSystemElement = document.getElementById(`identifier-system-referencedRequest-${formCount}`);
+                const identifierSystem = identifierSystemElement.value;
+                populateRefernecedForm(formCount, 'system', identifierSystem);
+                handleReferencedResourceType(formCount);
+            }
+
+            function handleCoverageIdentifierSystemChange(formCount) {
+                const identifierSystemElement = document.getElementById(`identifier-system-${formCount}`);
+                const identifierSystemValue = identifierSystemElement.value;
+                coverage.system = identifierSystemValue;
+            }
+
+            function handleCoverageIdentifierValueChange(formCount) {
+                const identifierValueElement = document.getElementById(`identifier-value-${formCount}`);
+                const identifierValue = identifierValueElement.value;
+                coverage.code = identifierValue;
+            }
+
+            function handleCoverageSubscriberReferenceChange(formCount) {
+                const subscriberReferenceElement = document.getElementById(`subscriber-${formCount}`);
+                const subscriberReferenceValue = subscriberReferenceElement.value;
+                coverage.subscriber = subscriberReferenceValue;
+            }
+
+            function handleCoverageBeneficiaryReferenceChange(formCount) {
+                const beneficiaryReferenceElement = document.getElementById(`beneficiary-${formCount}`);
+                const beneficiaryReferenceValue = beneficiaryReferenceElement.value;
+                coverage.beneficiary = beneficiaryReferenceValue;
+            }
+
+            function handleCoveragePeriodStartChange(formCount) {
+                const periodStartElement = document.getElementById(`period-start-${formCount}`);
+                const periodStartValue = periodStartElement.value;
+                coverage.start = periodStartValue;
+            }
+
+            function handleCoveragePeriodEndChange(formCount) {
+                const periodEndElement = document.getElementById(`period-end-${formCount}`);
+                const periodEndValue = periodEndElement.value;
+                coverage.end = periodEndValue;
+            }
+
+            function getReferencedNode(referencedDetail) {
+                let node = {};
+                node.resourceType = referencedDetail.resourceType;
+                node.identifier = [
+                    {
+                        system: referencedDetail.system,
+                        code: referencedDetail.code
+                    }
+                ];
+                return node;
+            }
+
+            function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
+                if (requestDetails.selectedRequestType == "service") {
+                    let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
+                    serviceRequest.resource.id = "service-" + Date.now() + Math.floor(Math.random() * 1000);
+                    serviceRequest.resource.code.text = requestDetails.selectedService.text;
+                    serviceRequest.resource.code.coding[0].system = requestDetails.selectedService.system;
+                    serviceRequest.resource.code.coding[0].code = requestDetails.selectedService.code;
+                    serviceRequest.resource.quantity.value = requestDetails.selectedQuantity;
+                    serviceRequest.resource.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
+                    serviceRequest.resource.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+                    return serviceRequest;
+                } else {
+
+                    let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
+                    medicationRequest.resource.id = "medication-" + Date.now() + Math.floor(Math.random() * 1000);
+                    medicationRequest.resource.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
+                    medicationRequest.resource.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+                    medicationRequest.resource.effectiveDosePeriod.start = requestDetails.selectedStartDate;
+                    medicationRequest.resource.effectiveDosePeriod.end = requestDetails.selectedEndDate;
+                    return medicationRequest;
+                }
+            }
+        </script>

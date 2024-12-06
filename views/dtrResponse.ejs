@@ -1,13 +1,24 @@
 <%- include('header') -%>
+<div class="message-container">
+    <% const allSuccess = operationOutcome.every(outcome => outcome.code === "success"); %>
+    <% const message = operationOutcome[0]?.details.text || "Unknown operation outcome."; %>
+    <% if (allSuccess) { %>
+        <div class="alert alert-success text-center">
+            <%= "Successful Retrieval" %>
+        </div>
+    <% } else { %>
+        <div class="alert alert-danger text-center">
+            <%= message %>
+        </div>
+    <% } %>
+</div>
+
 <div class="text-center center-div" id="baseLogin">
     <div class="container w-45 border py-5">
         <div class="title pb-5">
             <h1 class="heading-style">Required Questionnaires</h1>
             <span>Please fill these questionnaires</span>
             <hr>
-            <%
-            const allSuccess = operationOutcome.every(outcome => outcome.code === "success");
-            %>
             <% if (allSuccess) { %>
                 <table border="1">
                   <thead>
@@ -43,8 +54,8 @@
               <% } %>
         </div>
     </div>
- </div>
- <%- include('footer') -%> 
+</div>
+<%- include('footer') -%> 
  
  <script>
   function handleQuestionnaireClick(questionnaireId) {
