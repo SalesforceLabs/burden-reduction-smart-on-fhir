@@ -11,13 +11,13 @@ $(document).ready(function () {
                     <div class="col">
                         <span>Identifier System</span>
                         <input class="form-control" type="text" id="identifier-system-${formCount}" name="identifierSystem" 
-                            placeholder="Enter Identifier System" required 
+                            placeholder="Identifier System" readonly 
                             onchange="handleCoverageIdentifierSystemChange(${formCount})">
                     </div>
                     <div class="col">
                         <span>Identifier Value</span>
                         <input class="form-control" type="text" id="identifier-value-${formCount}" name="identifierValue" 
-                            placeholder="Enter Identifier Value" required 
+                            placeholder="Identifier Value" readonly 
                             onchange="handleCoverageIdentifierValueChange(${formCount})">
                     </div>
                 </div>
@@ -26,13 +26,13 @@ $(document).ready(function () {
                     <div class="col">
                         <span>Subscriber Reference</span>
                         <input class="form-control" type="text" id="subscriber-${formCount}" name="subscriber" 
-                            placeholder="Enter Subscriber Reference" required 
+                            placeholder="Subscriber Reference" readonly 
                             onchange="handleCoverageSubscriberReferenceChange(${formCount})">
                     </div>
                     <div class="col">
                         <span>Beneficiary Reference</span>
                         <input class="form-control" type="text" id="beneficiary-${formCount}" name="beneficiary" 
-                            placeholder="Enter Beneficiary Reference" required 
+                            placeholder="Beneficiary Reference" readonly 
                             onchange="handleCoverageBeneficiaryReferenceChange(${formCount})">
                     </div>
                 </div>
@@ -40,12 +40,12 @@ $(document).ready(function () {
                 <div class="row pb-2">
                     <div class="col">
                         <span>Period Start</span>
-                        <input class="form-control" type="date" id="period-start-${formCount}" name="periodStart" required 
+                        <input class="form-control" type="date" id="period-start-${formCount}" name="periodStart" 
                             onchange="handleCoveragePeriodStartChange(${formCount})">
                     </div>
                     <div class="col">
                         <span>Period End</span>
-                        <input class="form-control" type="date" id="period-end-${formCount}" name="periodEnd" required 
+                        <input class="form-control" type="date" id="period-end-${formCount}" name="periodEnd" 
                             onchange="handleCoveragePeriodEndChange(${formCount})">
                     </div>
                 </div>

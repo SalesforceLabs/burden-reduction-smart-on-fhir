@@ -47,7 +47,7 @@ class InitializeApp {
         const accessToken = input.accessToken;
         const instanceUrl = input.instanceUrl;
 
-        const apiUrl = path.join(instanceUrl, 'services/data/v62.0/sobjects/Account');
+        const apiUrl = path.join(instanceUrl, 'services/data/v63.0/sobjects/Account');
 
         try {
             const response = await axios.get(apiUrl, {
