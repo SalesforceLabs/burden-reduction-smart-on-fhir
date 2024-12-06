@@ -117,12 +117,36 @@
         </div>
 
     </div>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div>
 </div>
 
     <%- include('footer') -%>
-
     <script>
         function handleLaunchDTR(contextId) {
-            window.location.href =`/UM-Workspace?contextId=${contextId}&selectedProcessType=dtr`;
+            var spinner = document.getElementById('spinner');
+            var backdrop = document.getElementById('backdrop');
+
+            // Show the spinner
+            spinner.style.display = 'block';
+            backdrop.style.display = 'block';
+            const query = `SELECT Id FROM ServiceInfoResponseAction WHERE ResponseReferenceRecordId = '${contextId}'`;
+            const param = {
+                query: query,
+                isSosl: false,
+                elementSourceMethod: '/fetchData',
+            }
+            const response = fetchData(param)
+                .then(data => {
+                    spinner.style.display = 'none';
+                    backdrop.style.display = 'none';
+                    if (data[0].Id) {
+                        console.log("SIRA Context: ", data.Id)
+                        window.location.href = `/UM-Workspace?contextId=${data[0].Id}&selectedProcessType=dtr`;
+                    } else {
+                        console.log("No SIRA available");
+                    }
+                })
         }
     </script>
+    <script src="../utils/typeAheadScript.js"></script>

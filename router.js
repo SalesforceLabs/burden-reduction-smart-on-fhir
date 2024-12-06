@@ -155,6 +155,12 @@ router.post('/read-order-select-service-sample-structure', async (req, res) => {
     res.json({ success: true, data: data});
 });
 
+router.post('/read-retrieve-questionnaire-sample-structure', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/retrieveQuestionnaireRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
 router.post('/invoke-ip', async (req, res) => {
     // We know the type - everything. I see when i hit the request again and again payerConfig.json is turing in null values.
     // Understand why this is happening and fix it.
@@ -322,9 +328,41 @@ router.get('/order-select-form', (req,res)=>{
     res.render('orderSelectRequest')
 })
 
-router.get('/retrieve-questionnaire-form', (req,res)=>{
-    res.render('retrieveQuestionnaireRequest')
-})
+
+router.post('/retrieve-questionnaire-form', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const jsonInput = req.body.jsonInput;
+    const apiUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE + "/HlsDTR_RetrieveQuestionnaire");
+    console.log(apiUrl);
+
+    try {
+        const response = await axios.post(apiUrl, JSON.parse(jsonInput), {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: response.data,
+        });
+    } catch (error) {
+        console.error('Error making call to Retrieve Questionnaire API:', error.message);
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: { error: error.message },
+        });
+    }
+});
+
+router.get('/retrieve-questionnaire-form', (req, res) => {
+    res.render('retrieveQuestionnaireRequest', {
+        title: "Retrieve Questionnaire Request Form",
+        root: null,
+    });
+});
+
+
 
 router.get('/payer/callback', (req, res) => { 
     res.render('callback', {
@@ -422,6 +460,21 @@ router.get('/launchQuestionnaire', (req, res) => {
 
 router.get('/dtrResponse', (req, res) => {
     const questionnaireList = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/questionnaireList.json')));
+    const payload = {
+        "questionnaireIds": questionnaireList.questionnaireIds,
+        "operationOutcome": questionnaireList.operationOutcome
+    }
+    res.render('dtrResponse', {
+        title:"DTR Questionnaires",
+        questionnaireIds : payload.questionnaireIds,
+        operationOutcome : payload.operationOutcome
+
+    })
+});
+
+router.get('/dtrResponseWithPayload', (req, res) => {
+    const questionnaireList = JSON.parse(req.query.data);
+    
     const payload = {
         "questionnaireIds": questionnaireList.questionnaireIds,
         "operationOutcome": questionnaireList.operationOutcome
