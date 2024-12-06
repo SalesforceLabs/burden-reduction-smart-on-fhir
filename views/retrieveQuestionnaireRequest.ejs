@@ -2,25 +2,32 @@
     <div class="center-div">
         <div class="container w-80 border py-3">
             <div class="text-center title pb-2">
-                <h2 class="heading-style">Retrieve Questionnaire</h2>
+                <h2 class="heading-style">Retrieve Questionnaires</h2>
                 <span>Select a Patient and Member Plan to autopopulate some fields.</span>
+                <hr>
             </div>
             <form onsubmit="return creteRetrieveQuestionnaireInput(event);">
                 <div class="form-group">
                     <h3 class="font-weight-bold">Patient & Member Plan Details</h3>
                 </div>
                 <div class="form-group row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
                             , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
                             listId: 'patientSuggestionList' , onClickFunction: 'handlePatientSelection' ,
                             condition: 'WHERE IsPersonAccount=true' }) -%>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <%- include('typeAhead', { elementId: 'typeAheadMemberPlanSelect' ,
                             elementLabel: 'Select Member Plan' , elementSourceMethod: '/fetchData' ,
                             entityName: 'MemberPlan' , fields: ['Id', 'Name' ], listId: 'memberPlanSuggestionList' ,
                             onClickFunction: 'handleMemberPlanSelection' , condition: '' }) -%>
+                    </div>
+                    <div class="col-md-4">
+                        <%- include('typeAhead', { elementId: 'typeAheadPayerSelect' , elementLabel: 'Select Payer' ,
+                            elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                            listId: 'payerSuggestionList' , onClickFunction: 'handlePayerSelection' , condition: '' })
+                            -%>
                     </div>
                 </div>
                 <div class="form-group pt-2 pb-2">
@@ -28,7 +35,7 @@
                 </div>
 
                 <div id="dynamicRequestForms"></div>
-                <div class="row pb-2">
+                <div id="add-request-button" class="row pb-2">
                     <div class="col">
                         <div class="btn-right-align">
                             <button id="addForm" class="btn btn-primary btn-sm" type="button" title="Add a new request">
@@ -80,6 +87,7 @@
 
         <script>
             let selectedPatient = null;
+            let selectedPayer = null;
             let selectedMemberPlan = null;
             let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
             let requestForms = {};
@@ -89,7 +97,66 @@
             const params = new URLSearchParams(window.location.search);
             const contextId = params.get('contextId');
 
+            if (contextId) {
+                document.getElementById("add-request-button").remove();
+            }
 
+            document.addEventListener("DOMContentLoaded", async function () {
+                await prefilFormInformation();
+            });
+
+            async function prefilFormInformation() {
+                if (contextId) {
+                    try {
+                        var spinner = document.getElementById('spinner');
+                        var backdrop = document.getElementById('backdrop');
+
+                        spinner.style.display = 'block';
+                        backdrop.style.display = 'block';
+                        let query = `SELECT Id, ResponseReferenceRecordId FROM ServiceInfoResponseAction WHERE Id = '${contextId}'`;
+                        let param = {
+                            query: query,
+                            isSosl: false,
+                            elementSourceMethod: '/fetchData',
+                        }
+                        const response = await fetchData(param);
+                        if (response.length > 0) {
+                            const respId = response[0].ResponseReferenceRecordId;
+                            query = `SELECT Id, ServiceInformationRequest.RequestPayload, (SELECT Id, MemberPlanId FROM SIRC_ServiceInformationResponses) FROM ServiceInformationResponse WHERE Id = '${respId}'`;
+                            param.query = query;
+
+                            const crdRequestData = await fetchData(param);
+
+                            if (crdRequestData.length > 0) {
+                                const payload = JSON.parse(crdRequestData[0].ServiceInformationRequest.RequestPayload);
+                                selectedPatient = payload.prefetch.patient;
+                                selectedPatient.SourceSystemIdentifier = payload.prefetch.patient.identifier[0].value;
+                                const patientName = `${selectedPatient.name[0].given[0]} ${selectedPatient.name[0].family}`;
+                                document.getElementById("typeAheadPatientSelect").value = patientName;
+
+                                if (crdRequestData[0].SIRC_ServiceInformationResponses.records.length > 0) {
+                                    const memberPlanId = crdRequestData[0].SIRC_ServiceInformationResponses.records[0].MemberPlanId;
+
+                                    if (memberPlanId) {
+                                        query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND 
+                                        Member.IsPersonAccount = true AND Id = '${memberPlanId}'`;
+                                        param.query = query;
+                                        const memberPlanDetails = await fetchData(param);
+                                        selectedMemberPlan = memberPlanDetails[0];
+                                        document.getElementById("typeAheadMemberPlanSelect").value = selectedMemberPlan.Name;
+                                    }
+                                }
+                            }
+                            await updateCoverageDetails();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        spinner.style.display = 'none';
+                        backdrop.style.display = 'none';
+                    }
+                }
+            }
 
             function handleRequestType(formCount) {
                 selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
@@ -110,9 +177,9 @@
                     text: "MRA Knee Vessels Right"
                 };
                 const mraKneeVesselsLeft = {
-                    system: "http://hl7.org/fhir/sid/icd-10",
-                    code: "S83.511",
-                    text: "Test"
+                    system: "MCG",
+                    code: "CodeSetMCG",
+                    text: "CodeSetMCG"
                 }
 
                 prepareForMedOrServiceSelection(formCount);
@@ -170,6 +237,29 @@
                 await updateCoverageDetails();
             }
 
+            async function handlePayerSelection(element) {
+                const $suggestionBox = $('#payerSuggestionList');
+                const $element = $(element);
+                const name = $element.text();
+
+                const data = $element.data();
+                $('#typeAheadPayerSelect').val(name);
+                $suggestionBox.empty();
+
+                const query = `SELECT IdValue, SourceSystem FROM Identifier WHERE ParentRecordId = '${data.Id}' AND IdValue!='' AND SourceSystem!=''`;
+                const param = {
+                    query: query,
+                    isSosl: false,
+                    elementSourceMethod: '/fetchData',
+                };
+                const payerDetails = await fetchData(param);
+                selectedPayer = payerDetails[0];
+                console.log(selectedPayer);
+                await updateReferenceDetails();
+                handleIdentifierCode(1);
+                handleIdentifierSystem(1);
+            }
+
             async function handleMemberPlanSelection(element) {
                 const $suggestionBox = $('#memberPlanSuggestionList');
                 const $element = $(element);
@@ -179,7 +269,7 @@
                 $('#typeAheadMemberPlanSelect').val(name);
                 $suggestionBox.empty();
 
-                const query = `SELECT SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND 
+                const query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND 
                        Member.IsPersonAccount = true AND Id = '${data.Id}'`;
                 const param = {
                     query: query,
@@ -196,7 +286,7 @@
                 $(`#identifier-system-0`).val(selectedMemberPlan.SourceSystem);
                 coverage.system = selectedMemberPlan.SourceSystem;
                 $(`#identifier-value-0`).val(selectedMemberPlan.SourceSystemIdentifier);
-                coverage.code = selectedMemberPlan.SourceSystemIdentifier;
+                coverage.value = selectedMemberPlan.SourceSystemIdentifier;
 
                 if (!selectedPatient) return;
                 $(`#subscriber-0`).val(selectedPatient.SourceSystemIdentifier);
@@ -204,6 +294,13 @@
 
                 $(`#beneficiary-0`).val(selectedPatient.SourceSystemIdentifier);
                 coverage.beneficiary = selectedPatient.SourceSystemIdentifier;
+            }
+
+            async function updateReferenceDetails() {
+                if (!selectedPayer) return;
+
+                $(`#identifier-code-referencedRequest-1`).val(selectedPayer.IdValue);
+                $(`#identifier-system-referencedRequest-1`).val(selectedPayer.SourceSystem);
             }
 
             function disableForRequestTypeSelection(formCount) {
@@ -256,13 +353,11 @@
                     .then(data => {
                         if (data.success) {
                             let requestStructure = data.data.base;
-                            console.log(requestStructure)
                             let medicationRequestBase = data.data.medicationRequest;
                             let serviceRequestBase = data.data.serviceRequest;
 
                             Object.keys(requestForms).forEach(key => {
                                 let requestDetails = requestForms[key];
-                                console.log(requestDetails, key);
                                 requestStructure.order.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase).resource);
                             });
 
@@ -279,14 +374,17 @@
                             }
 
                             requestStructure.coverage[0].identifier[0].system = coverage.system;
-                            requestStructure.coverage[0].identifier[0].code = coverage.code;
-                            requestStructure.coverage[0].period.start = coverage.start;
-                            requestStructure.coverage[0].period.end = coverage.end;
+                            requestStructure.coverage[0].identifier[0].value = coverage.value;
+                            if (coverage.start) {
+                                requestStructure.coverage[0].period.start = coverage.start;
+                            }
+                            if (coverage.end) {
+                                requestStructure.coverage[0].period.end = coverage.end;
+                            }
                             requestStructure.coverage[0].beneficiary.reference = coverage.beneficiary;
                             requestStructure.coverage[0].subscriber.reference = coverage.subscriber;
 
-
-                            console.log(requestStructure);
+                            console.log("RetrieveQuestionnaire Request Input:", requestStructure)
                             invokeRetrieveQuestionnaire(requestStructure)
                         }
                     })
@@ -380,7 +478,7 @@
             function handleCoverageIdentifierValueChange(formCount) {
                 const identifierValueElement = document.getElementById(`identifier-value-${formCount}`);
                 const identifierValue = identifierValueElement.value;
-                coverage.code = identifierValue;
+                coverage.value = identifierValue;
             }
 
             function handleCoverageSubscriberReferenceChange(formCount) {

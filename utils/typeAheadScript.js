@@ -32,7 +32,7 @@ async function  fetchData(input) {
             });
             resolve(output);
         } else {
-            
+            resolve(output);
         }
     })
     .catch(error => {

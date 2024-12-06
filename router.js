@@ -61,7 +61,7 @@ router.post('/fetchData', async (req, res) => {
     const input = req.body;
 
     const queryTerm = (input.isSosl == true ? 'search': 'query');
-    const subApiString = `services/data/v62.0/${queryTerm}?q=` + (input.isSosl == true ? utils.makeSoslQuery(input): input.queryString);
+    const subApiString = `services/data/v63.0/${queryTerm}?q=` + (input.isSosl == true ? utils.makeSoslQuery(input): input.queryString);
     const apiString = path.join(instanceUrl,subApiString);
 
     const apiUrl  = encodeURI(apiString);
@@ -426,7 +426,7 @@ router.get('/fetch-field-value', async (req, res) => {
         const entityId = '1MOSB0000009ZHt4AM';
         const entityField = 'Context';
         const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
-        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v62.0/sobjects/${entity}/${entityId}`, {
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v63.0/sobjects/${entity}/${entityId}`, {
             headers: {
                 Authorization: `Bearer ${providerConfig.accessToken}`
             }
