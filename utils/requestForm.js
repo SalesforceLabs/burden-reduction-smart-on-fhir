@@ -70,9 +70,16 @@ return formHTML;
 
     $('#dynamicRequestForms').on('click', `.removeForm`, function () {
         const formId = $(this).data('id');
-        if ($('#dynamicRequestForms .form-container').length > 1) {
+        const params = new URLSearchParams(window.location.search);
+        const contextId = params.get('contextId');
+
+        if ($('#dynamicRequestForms .form-container').length > 1 || (contextId!=null && $('#dynamicRequestForms .form-container').length > 0)) {
             $(`#${formId}`).remove();
             delete requestForms[formId];
+           
+            if( Object.entries(requestForms).length==0){
+                document.getElementById("add-request-button").style.display = "block"
+            }
         } else {
             alert('At least one form must remain.');
         }
