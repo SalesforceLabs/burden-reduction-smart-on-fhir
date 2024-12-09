@@ -206,6 +206,7 @@
             serviceRequest.resource.quantity.value = requestDetails.selectedQuantity;
             serviceRequest.resource.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
             serviceRequest.resource.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+            serviceRequest.resource.occurrence.occurrenceDateTime = requestDetails.selectedStartDate;
             return serviceRequest;
         } else {
 
@@ -216,6 +217,8 @@
             medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
             medicationRequest.resource.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
             medicationRequest.resource.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+            medicationRequest.resource.dispenseRequest.quantity.validityPeriod.start = requestDetails.selectedStartDate;
+            medicationRequest.resource.dispenseRequest.quantity.validityPeriod.end = requestDetails.selectedEndDate;
             medicationRequest.resource.effectiveDosePeriod.start = requestDetails.selectedStartDate;
             medicationRequest.resource.effectiveDosePeriod.end = requestDetails.selectedEndDate;
             return medicationRequest;

@@ -162,7 +162,11 @@
               "value": 6,
               "unit": "TAB",
               "system": "http://terminology.hl7.org/CodeSystem/v3-orderableDrugForm",
-              "code": "TAB"
+              "code": "TAB",
+              "validityPeriod": {
+                "start": "2024-07-06",
+                "end": "2024-07-10"
+              }
             }
           }
         }
