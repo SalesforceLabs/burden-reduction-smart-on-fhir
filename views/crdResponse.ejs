@@ -8,7 +8,7 @@
         </div>
 
         <div class="cardContainer">
-            <% if (operationalOutcome && operationalOutcome.issue[0].severity != 'error') { %>
+            <% if (!operationalOutcome && cards) { %>
                 <table>
                     <thead>
                         <tr>
@@ -111,9 +111,11 @@
                         <% }); %>
                     </tbody>
                 </table>
-            <% } else { %>
+            <% } else if(operationalOutcome) { %>
                 <p style="color:red" align="left">We encountered an error : <%= operationalOutcome.issue[0].details.text %></p>
-            <% } %>
+            <% } else { %>
+                <p style="color:red" align="left">We encountered an error. Please try again later.</p>
+                <% } %>
         </div>
 
     </div>
