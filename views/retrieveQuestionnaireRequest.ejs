@@ -381,7 +381,7 @@
                     });
             }
 
-            function invokeRetrieveQuestionnaire(data) {
+            function  invokeRetrieveQuestionnaire(data) {
                 const spinner = document.getElementById('spinner');
                 const backdrop = document.getElementById('backdrop');
 
@@ -400,12 +400,14 @@
                     })
                 })
                     .then(response => response.json())
-                    .then(data => {
+                    .then(async (data) => {
                         if (data.success) {
+                            const cleanUpResponse = await cleanQuestionnaireResponse(data.data);
                             spinner.style.display = 'none';
                             backdrop.style.display = 'none';
-                            console.log(data.data);
-                            window.location.href = "/dtrResponseWithPayload?data=" + JSON.stringify(data.data);
+                            if(cleanUpResponse.success) {
+                                window.location.href = "/dtrResponse";
+                            }
                         }
                     })
                     .catch(error => {
@@ -413,6 +415,32 @@
                         spinner.style.display = 'none';
                         backdrop.style.display = 'none';
                     });
+            }
+
+            async function cleanQuestionnaireResponse(data){
+                if(data.questionnaireIds) {
+                    data.questionnaireIds.forEach(questionnaire => {
+                        questionnaire.isFilled = false;
+                        questionnaire.response = [];
+                    })     
+                }
+
+                try {
+                    const response = await fetch('/updateQuestionnaireList', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            input: data,
+                        })
+                    });
+            
+                    const result = await response.json();
+                    return { success: true, data: result };
+                } catch (error) {
+                    return { success: false, error: error };
+                }
             }
 
             function handleQuantity(formCount) {

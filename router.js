@@ -302,7 +302,25 @@ router.post('/handleQuestionnaireSubmit', async (req, res) => {
 
 });
 
+router.post('/updateQuestionnaireList', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const input = req.body.input;
+    questionnaireIds = input.questionnaireIds;
+    operationOutcome = input.operationOutcome;
+    dtrmetricId = input.dtrmetricId;
 
+    fileUpdater.updateFile(filePath, {
+        questionnaireIds : questionnaireIds,
+        operationOutcome : operationOutcome,
+        dtrmetricId : dtrmetricId
+
+    })
+    .then(() => {
+        console.log('Update complete for questionnaires');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err));
+});
 
 //Get Section
 router.get('/', async function (req, res) {
