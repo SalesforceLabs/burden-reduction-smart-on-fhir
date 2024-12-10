@@ -189,7 +189,7 @@ router.post('/invoke-ip', async (req, res) => {
 router.post('/call-disc-api', async (req, res) => {
     const input = req.body;
     const processType = input.processType;
-    const discoveryApiRequestQuery = (processType == 'crd') ? process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY : (processType == 'dtr') ? process.env.SALESFORCE_DTR_DISCOVERY_API_QUERY : null;
+    const discoveryApiRequestQuery = (processType == 'crd') ? process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY : (processType == 'dtr') ? process.env.SALESFORCE_DTR_DISCOVERY_API_QUERY : (processType == 'pas') ? process.env.SALESFORCE_PAS_DISCOVERY_API_QUERY : null;
     const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
     const discoveryApiRequestUrl = path.join(instanceUrl, discoveryApiRequestQuery);
 
@@ -487,6 +487,12 @@ router.get('/dtrResponse', (req, res) => {
         questionnaireIds : payload.questionnaireIds,
         operationOutcome : payload.operationOutcome
 
+    })
+});
+
+router.get('/pasRequestForm', (req, res) => {
+    res.render('careServiceRequestForm', {
+        title:"PAS Request Form",
     })
 });
 

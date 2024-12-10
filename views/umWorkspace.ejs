@@ -67,8 +67,9 @@
               });
         }
         else if (processType === 'pas') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Prior Authorization & Support', serviceName: 'some_pas' }) %>`;
+            callDiscoveryApi({
+                processType:processType
+              });
         }
     }
 </script>
@@ -225,7 +226,9 @@
             window.location.href = '/order-select-form'+querySuffix;
         }else if(rowData.Type == "HlsDTR" && rowData.SubType == "RetrieveQuestionnaire"){
             window.location.href = '/retrieve-questionnaire-form'+querySuffix;
-        }else{
+        }else if(rowData.Type == "HlsPas" && rowData.SubType == "TransformCareServices" ) {
+            window.location.href = '/pasRequestForm'+querySuffix;
+        } else{
             fetch('/useService', {
                 method: 'POST',
                 headers: {
