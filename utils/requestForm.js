@@ -65,7 +65,13 @@ return formHTML;
 
     // Handle "Add" button click
     $('#addForm').on('click', function () {
+        const params = new URLSearchParams(window.location.search);
+        const contextId = params.get('contextId');
         $('#dynamicRequestForms').append(createFormDiv());
+
+        if(contextId!=null &&Object.entries(requestForms).length==0){
+            document.getElementById("add-request-button").style.display = "none"
+        }
     });
 
     $('#dynamicRequestForms').on('click', `.removeForm`, function () {
