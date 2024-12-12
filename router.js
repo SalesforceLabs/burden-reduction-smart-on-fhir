@@ -149,6 +149,12 @@ router.post('/read-order-select-request-base-structure', async (req, res) => {
     res.json({ success: true, data: data});
 });
 
+router.post('/read-care-service-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/careServiceRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
 router.post('/read-order-select-service-sample-structure', async (req, res) => {
     var sampleServiceFilePath = path.join(__dirname, 'config/orderSelectServiceRequestStructure.json');
     const data =  fileUpdater.getFile(sampleServiceFilePath);
@@ -174,6 +180,28 @@ router.post('/invoke-ip', async (req, res) => {
             }
         });
         //send result back to oauth
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+router.post('/invokeCareServiceConnectAPI', async (req, res) => {
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
+    const connectAPIUrl = path.join(instanceUrl, process.env.SALESFORCE_PAS_CONNECT_API_QUERY);
+    try {
+        const response = await axios.post(connectAPIUrl, req.body.input, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
         res.json({
             success: true,
             data: response.data
@@ -514,6 +542,14 @@ router.get('/dtrResponseWithPayload', (req, res) => {
 router.get('/typeAhead', (req, res) => {
     res.render('typeAheadUse', {
         title:"Use Typeahead",
+    })
+});
+
+router.get('/pasResponse', (req, res) => {
+    const response = JSON.parse(req.query.data);
+    res.render('pasResponse', {
+        title:"PAS Response",
+        response: response
     })
 });
 
