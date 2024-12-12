@@ -11,24 +11,19 @@
                     <h3 class="font-weight-bold">Patient & Member Plan Details</h3>
                 </div>
                 <div class="form-group row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
                             , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
                             listId: 'patientSuggestionList' , onClickFunction: 'handlePatientSelection' ,
                             condition: 'WHERE IsPersonAccount=true' }) -%>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <%- include('typeAhead', { elementId: 'typeAheadMemberPlanSelect' ,
                             elementLabel: 'Select Member Plan' , elementSourceMethod: '/fetchData' ,
                             entityName: 'MemberPlan' , fields: ['Id', 'Name' ], listId: 'memberPlanSuggestionList' ,
                             onClickFunction: 'handleMemberPlanSelection' , condition: '' }) -%>
                     </div>
-                    <div class="col-md-4">
-                        <%- include('typeAhead', { elementId: 'typeAheadPayerSelect' , elementLabel: 'Select Payer' ,
-                            elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
-                            listId: 'payerSuggestionList' , onClickFunction: 'handlePayerSelection' , condition: '' })
-                            -%>
-                    </div>
+
                 </div>
                 <div class="form-group pt-2 pb-2">
                     <h3>Medication/Service Request</h3>
@@ -46,12 +41,12 @@
                     </div>
                 </div>
 
-                <div class="form-group pb-2">
+                <div class="form-group pb-2" hidden>
                     <h3>Referenced</h3>
                 </div>
 
-                <div id="dynamicReferenceForms"></div>
-                <div class="row pb-2">
+                <div id="dynamicReferenceForms" hidden></div>
+                <div class="row pb-2" hidden>
                     <div class="col">
                         <div class="btn-right-align">
                             <button id="addReferencedItem" class="btn btn-primary btn-sm" type="button"
@@ -120,6 +115,7 @@
             });
 
             async function prefillFormInformation() {
+                await handlePayerSelection();
                 if (contextId) {
                     try {
                         const spinner = document.getElementById('spinner');
@@ -236,23 +232,24 @@
                 await updateCoverageDetails();
             }
 
-            async function handlePayerSelection(element) {
-                const $suggestionBox = $('#payerSuggestionList');
-                const $element = $(element);
-                const name = $element.text();
-                const data = $element.data();
-
-                $('#typeAheadPayerSelect').val(name);
-                $suggestionBox.empty();
-
-                const query = `SELECT IdValue, SourceSystem FROM Identifier WHERE ParentRecordId = '${data.Id}' AND IdValue!='' AND SourceSystem!=''`;
+            async function handlePayerSelection() {
+                const query = `SELECT IdValue, SourceSystem FROM Identifier WHERE IdValue!='' AND SourceSystem!='' LIMIT 1`;
                 const param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
                 const payerDetails = await fetchData(param);
-                selectedPayer = payerDetails[0];
-                console.log(selectedPayer);
-                await updateReferenceDetails();
-                handleIdentifierCode(1);
-                handleIdentifierSystem(1);
+                if (payerDetails.length > 0) {
+                    selectedPayer = payerDetails[0];
+                    console.log(selectedPayer);
+                    await updateReferenceDetails();
+                    handleIdentifierCode(1);
+                    handleIdentifierSystem(1);
+                }
+                else {
+                    selectedPayer = {
+                        IdValue: "test",
+                        SourceSystem: "test"
+                    }
+                }
+
             }
 
             async function handleMemberPlanSelection(element) {
@@ -264,7 +261,7 @@
                 $('#typeAheadMemberPlanSelect').val(name);
                 $suggestionBox.empty();
 
-                const query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${data.Id}'`;
+                const query = `SELECT Id, Name, SourceSystemIdentifier, SubscriberId, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${data.Id}'`;
                 const param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
                 const memberPlanDetails = await fetchData(param);
                 selectedMemberPlan = memberPlanDetails[0];
