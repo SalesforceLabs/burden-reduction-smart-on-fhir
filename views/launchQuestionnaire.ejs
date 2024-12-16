@@ -20,6 +20,7 @@
     const form = document.getElementById('inputForm');
     const spinner = document.getElementById('spinner');
     const contextId = "<%= contextId %>";
+    const dtrContextId = "<%= dtrContextId %>";
 
     document.addEventListener("DOMContentLoaded", function () {
         if (contextId) {
@@ -72,7 +73,7 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                questionnaireId : contextId
+                questionnaireId : contextId,
             })
         });
 
@@ -103,7 +104,8 @@
         const questionInputs = document.querySelectorAll('input[id^="question-"]');
         const questionList = Array.from(questionInputs).map(input => ({
             questionId: input.id,         // Get the input's id
-            response: input.value.trim() // Get the input's value
+            response: input.value.trim(),
+            developeName: input.getAttribute("data-developer-name") // Get the input's value
         }));
 
         try {
@@ -119,7 +121,11 @@
             });
 
             const resultPage = await response.text();
-            window.location.href = `/dtrResponse`;
+            if(dtrContextId) {
+                window.location.href = `/dtrResponse?contextId=${dtrContextId}`;
+            } else {
+                 window.location.href = `/dtrResponse`;
+            }
         } catch (error) {
             alert('Something went wrong!');
         } 
