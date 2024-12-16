@@ -336,12 +336,13 @@ router.post('/updateQuestionnaireList', async (req, res) => {
     questionnaireIds = input.questionnaireIds;
     operationOutcome = input.operationOutcome;
     dtrmetricId = input.dtrmetricId;
+    contextId = input.contextId;
 
     fileUpdater.updateFile(filePath, {
         questionnaireIds : questionnaireIds,
         operationOutcome : operationOutcome,
-        dtrmetricId : dtrmetricId
-
+        dtrmetricId : dtrmetricId,
+        contextId : contextId
     })
     .then(() => {
         console.log('Update complete for questionnaires');
