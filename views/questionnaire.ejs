@@ -21,47 +21,47 @@
                                             
                                             <!-- Various input types based on questionDataType -->
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Text') { %>
-                                                <input type="text" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="text" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'textarea') { %>
-                                                <textarea id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %>></textarea>
+                                                <textarea id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %>></textarea>
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'date') { %>
-                                                <input type="date" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="date" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'datetime-local') { %>
-                                                <input type="datetime-local" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="datetime-local" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'File') { %>
-                                                <input type="file" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="file" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Integer') { %>
-                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" step="1" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" step="1" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'decimal') { %>
-                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" step="any" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="number" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" step="any" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'url') { %>
-                                                <input type="url" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="url" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'time') { %>
-                                                <input type="time" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="time" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'Checkbox') { %>
-                                                <input type="checkbox" id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
+                                                <input type="checkbox" id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" <%= question.propertySetConfig.required ? 'required' : '' %> />
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'multi-select') { %>
-                                                <select id="question-<%= stepIndex %>-<%= questionIndex %>" name="question-<%= stepIndex %>-<%= questionIndex %>[]" multiple <%= question.propertySetConfig.required ? 'required' : '' %>>
+                                                <select id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>[]" multiple <%= question.propertySetConfig.required ? 'required' : '' %>>
                                                     <% if (question.options) { %>
                                                         <% question.options.forEach(option => { %>
                                                             <option value="<%= option.value %>"><%= option.label %></option>
@@ -74,14 +74,14 @@
                                                 <% if (question.options) { %>
                                                     <% question.options.forEach(option => { %>
                                                         <label>
-                                                            <input type="radio" name="question-<%= stepIndex %>-<%= questionIndex %>" value="<%= option.value %>" <%= question.propertySetConfig.required ? 'required' : '' %> /> <%= option.label %>
+                                                            <input type="radio" data-developer-name="<%= question.name %>"   name="question-<%= stepIndex %>-<%= questionIndex %>" value="<%= option.value %>" <%= question.propertySetConfig.required ? 'required' : '' %> /> <%= option.label %>
                                                         </label>
                                                     <% }) %>
                                                 <% } %>
                                             <% } %>
             
                                             <% if (question.customTypeDetails.discoveryFramework.questionDataType === 'text-block') { %>
-                                                <p><%= question.label || question.name %></p>
+                                                <p id="question-<%= stepIndex %>-<%= questionIndex %>" data-developer-name="<%= question.name %>"><%= question.label || question.name %></p>
                                             <% } %>
                                         </div>
                                     <% }); %>
@@ -105,3 +105,10 @@
             </div>  
         </div>
 <%- include('footer') -%>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const root  = "<%= root %>";
+        console.log(root);
+    });
+</script>

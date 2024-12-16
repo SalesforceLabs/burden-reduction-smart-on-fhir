@@ -36,7 +36,7 @@
                                             <button type="button" class="btn btn-info" data-bs-toggle="modal"data-bs-target="#<%= modalId %>">
                                                     View System Action
                                             </button>
-                                            <% if (action && action.resource.extension['doc-needed'] && action.resource.extension['doc-needed'].value != 'conditional' ) { %>
+                                            <% if (action && action.resource.extension['doc-needed'] && action.resource.extension['doc-needed'].value != 'not-needed' ) { %>
                                                 <button type="button" class="btn fillQuestionnaireButton" onclick='handleLaunchDTR("<%= action.resource.extension["coverage-assertion-id"].valueString %>")'>
                                                     Launch DTR
                                                 </button>

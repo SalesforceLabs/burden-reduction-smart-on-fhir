@@ -351,6 +351,28 @@ router.post('/updateQuestionnaireList', async (req, res) => {
     .catch(err => console.error('Update failed:', err));
 });
 
+router.post('/updateAssessorAndReviewer', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const input = req.body.input;
+    const key = input.key;
+
+    if(key){
+        let payload = {};
+        payload[key] = {
+            IdValue : input.IdValue,
+            SourceSystem : input.SourceSystem
+        }
+        fileUpdater.updateFile(filePath, payload)
+        .then(() => {
+            console.log('Update complete for questionnaires');
+            res.json({ success: true});
+        })
+        .catch(err => console.error('Update failed:', err));
+    }
+});
+
+
+
 //Get Section
 router.get('/', async function (req, res) {
     const payerConfigFilePath = path.join(__dirname, `config/payerConfig.json`);
@@ -499,14 +521,17 @@ router.get('/loadQuestionnaire', (req, res) => {
 
 router.get('/launchQuestionnaire', (req, res) => {
     const contextId = req.query.contextId;
+    const dtrContextId = req.query.dtrContextId;
     res.render('launchQuestionnaire', {
         title:"DTR Portal",
-        contextId: contextId
+        contextId: contextId,
+        dtrContextId: dtrContextId
     })
 });
 
 router.get('/dtrResponse', (req, res) => {
     const questionnaireList = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/questionnaireList.json')));
+    const contextId = req.query.contextId;
     const payload = {
         "questionnaireIds": questionnaireList.questionnaireIds,
         "operationOutcome": questionnaireList.operationOutcome
@@ -514,14 +539,19 @@ router.get('/dtrResponse', (req, res) => {
     res.render('dtrResponse', {
         title:"DTR Questionnaires",
         questionnaireIds : payload.questionnaireIds,
-        operationOutcome : payload.operationOutcome
+        operationOutcome : payload.operationOutcome,
+        contextId : contextId
 
     })
 });
 
 router.get('/pasRequestForm', (req, res) => {
+    const contextId = req.query.contextId;
+    const source = req.query.source;
     res.render('careServiceRequestForm', {
         title:"PAS Request Form",
+        contextId: contextId,
+        source : source
     })
 });
 

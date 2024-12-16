@@ -12,9 +12,9 @@
             </div>
             <div class="form-group row mb-3">
                 <div class="col-md-6">
-                    <%- include('typeAhead', { elementId: 'typeAhead1' , elementLabel: 'Select Patient'
+                    <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
                         , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
-                        listId: 'list1' , onClickFunction: 'handlePatientSelect' ,
+                        listId: 'patientSelectonList' , onClickFunction: 'handlePatientSelect' ,
                         condition: 'WHERE IsPersonAccount=true' }) -%>
                 </div>
                 <div class="col-md-6">
@@ -84,11 +84,71 @@
 </div>
 <%- include('footer') -%>
 <script>
+
+    const context = "<%= contextId %>";
+    const source = "<%= source %>";
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        if (contextId) {
+            await prefillFormInformation();   
+        }
+    });
+
+    async function prefillFormInformation() {
+        await handlePayerSelection();
+        if (contextId) {
+            try {
+                const spinner = document.getElementById('spinner');
+                const backdrop = document.getElementById('backdrop');
+
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+
+                let query = `SELECT Id, ResponseReferenceRecordId FROM ServiceInfoResponseAction WHERE Id = '${contextId}'`;
+                let param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
+                const response = await fetchData(param);
+
+                if (response.length > 0) {
+                    const respId = response[0].ResponseReferenceRecordId;
+                    query = `SELECT Id, ServiceInformationRequest.RequestPayload, (SELECT Id, MemberPlanId FROM SIRC_ServiceInformationResponses) FROM ServiceInformationResponse WHERE Id = '${respId}'`;
+                    param.query = query;
+
+                    const crdRequestData = await fetchData(param);
+
+                    if (crdRequestData.length > 0) {
+                        const payload = JSON.parse(crdRequestData[0].ServiceInformationRequest.RequestPayload);
+                        selectedPatient = payload.prefetch.patient;
+                        selectedPatient.SourceSystemIdentifier = payload.prefetch.patient.identifier[0].value;
+                        const patientName = `${selectedPatient.name[0].given[0]} ${selectedPatient.name[0].family}`;
+                        document.getElementById("typeAheadPatientSelect").value = patientName;
+
+                        if (crdRequestData[0].SIRC_ServiceInformationResponses.records.length > 0) {
+                            const memberPlanId = crdRequestData[0].SIRC_ServiceInformationResponses.records[0].MemberPlanId;
+
+                            if (memberPlanId) {
+                                query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${memberPlanId}'`;
+                                param.query = query;
+                                const memberPlanDetails = await fetchData(param);
+                                if (memberPlanDetails.length > 0) {
+                                    selectedMemberPlan = memberPlanDetails[0];
+                                    document.getElementById("typeAheadMemberPlanSelect").value = selectedMemberPlan.Name;
+                                }
+                            }
+                        }
+                    }
+                    await updateCoverageDetails();
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+            }
+        }
+    }
+
     let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan;
     let requestForms = {};
-    document.getElementById('startDate').valueAsDate = new Date();
-    document.getElementById('endDate').valueAsDate = new Date();
-    document.getElementById('quantity').value = 0;
 
     function handleRequestType(formCount) {
         selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
@@ -356,11 +416,11 @@
      }
 
      async function handlePatientSelect(element) {
-        const $suggestionBox = $('#list1');
+        const $suggestionBox = $('#patientSelectonList');
         const $element = $(element);
         const name = $element.text();
         const data = $element.data();
-        $('#typeAhead1').val(name);
+        $('#typeAheadPatientSelect').val(name);
         $suggestionBox.empty();
 
         const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;

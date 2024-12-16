@@ -403,7 +403,7 @@
                             spinner.style.display = 'none';
                             backdrop.style.display = 'none';
                             if(cleanUpResponse.success) {
-                                window.location.href = "/dtrResponse";
+                                window.location.href = `/dtrResponse?contextId=${contextId}`;
                             }
                         }
                     })
