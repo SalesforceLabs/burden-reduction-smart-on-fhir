@@ -211,6 +211,27 @@ th {
   padding: 5px 10px;
   cursor: pointer;
 }
+
+.getAssessmentIdsButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  justify-content: right;
+}
+
+.getAssessmentIdsButton:hover {
+  background-color: lightgreen;
+}
+
+.getAssessmentIdsButton:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+
 .fillQuestionnaireButton:hover {
   background-color: #0056b3;
 }

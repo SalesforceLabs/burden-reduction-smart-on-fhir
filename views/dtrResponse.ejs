@@ -49,6 +49,15 @@
                     <% }); %>
                   </tbody>
                 </table>
+                <br>
+                <div class="row mb-3">
+                  <!-- <div class="col-md-6"> -->
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                      <input id="assessmentIdsCheckbox" type="checkbox" title="Assessment Ids are present">
+                      <button class="getAssessmentIdsButton" onclick="handleGetAssessmentIdsClick()">Get Assessment Ids</button>
+                      <button id="pasRequestButton" class="getAssessmentIdsButton" onclick="handleStartPasRequest()" disabled>Raise a PAS Request</button>
+                    </div>
+                </div>
               <% } else { %>
                 <p>We could not fetch questionnaires!</p>
               <% } %>
@@ -60,6 +69,11 @@
  <script>
   function handleQuestionnaireClick(questionnaireId) {
     window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}`;
+  }
+
+  function handleGetAssessmentIdsClick() {
+    document.getElementById("pasRequestButton").removeAttribute("disabled");
+    document.getElementById("assessmentIdsCheckbox").checked = true;
   }
 
   // Handler for checkbox changes

@@ -415,6 +415,9 @@
             }
 
             async function cleanQuestionnaireResponse(data){
+                if(contextId) {
+                    data.contextId = contextId;
+                }
                 if(data.questionnaireIds) {
                     data.questionnaireIds.forEach(questionnaire => {
                         questionnaire.isFilled = false;
