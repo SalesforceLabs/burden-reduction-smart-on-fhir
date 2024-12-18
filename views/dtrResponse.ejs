@@ -78,6 +78,8 @@
               <% } %>
         </div>
     </div>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div>
 </div>
 <%- include('footer') -%> 
  
@@ -100,6 +102,7 @@
     else{
       document.getElementById("pasRequestButton").removeAttribute("disabled");
       document.getElementById("assessmentIdsCheckbox").checked = true;
+      showSpinner(true);
       createGetAssessmentAPIPayloadForEach()
     }
   }
@@ -137,6 +140,7 @@
       }
     })
     .catch(error => {
+      showSpinner(false)
       console.error('Error:', error);
     });
 }
@@ -169,12 +173,43 @@ function createGetAssessmentAPIPayload(questionnaireId) {
           };
         });
         console.log("Assessment Payload", baseStructure);
+        createAssessment(baseStructure, questionnaireId.Id);
       }
     })
     .catch(error => {
+      showSpinner(false)
       console.error('Error:', error);
     });
 }
+
+function createAssessment(payload, omniProcessId){
+  const body ={
+      body:payload,
+      omniprocessId:omniProcessId,
+      api:`/connect/discovery-framework/assessment-responses/${omniProcessId}`
+  }
+  fetch('/post-connect-api', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body:JSON.stringify(body)
+  })
+    .then(response => response.json())
+    .then(data => {
+      showSpinner(false)
+      if (data.success) {
+        alert("Assessment ID :"+data.data.assessmentId)
+      }
+    })
+    .catch(error => {
+      showSpinner(false)
+      console.error('Error:', error);
+    });
+}
+
+
+
   async function handleassessorSelect(element) {
     const $suggestionBox = $('#assessorSelectonList');
     const $element = $(element);
@@ -262,6 +297,14 @@ function formatDate(date) {
 
     const formattedDate = date.toISOString().slice(0, -1); // Remove the Z at the end
     return `${formattedDate}${timezoneOffset}`;
+}
+
+function showSpinner(show){
+  const spinner = document.getElementById('spinner');
+                        const backdrop = document.getElementById('backdrop');
+
+                        spinner.style.display = show ? 'block': 'none';
+                        backdrop.style.display = show ? 'block':'none';
 }
  </script>
  <script src="utils/typeAheadScript.js"></script>"
