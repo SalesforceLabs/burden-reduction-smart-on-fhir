@@ -94,13 +94,13 @@
   }
 
   function handleGetAssessmentIdsClick() {
-
     if(!selectedAssessor || !selectedReviewer){
       window.alert("Please select assessor and reviewer!");
     }
     else{
       document.getElementById("pasRequestButton").removeAttribute("disabled");
       document.getElementById("assessmentIdsCheckbox").checked = true;
+      createGetAssessmentAPIPayloadForEach()
     }
   }
 
@@ -116,6 +116,65 @@
     console.log(`Questionnaire ID: ${questionnaireId}, Is Filled: ${isChecked}`);
   }
 
+  function createGetAssessmentAPIPayloadForEach(event) {
+  window.event.preventDefault();
+
+  fetch('/read-questionnaire-list', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        let questionnaireIds = data.data.questionnaireIds;
+        questionnaireIds.forEach((questionnaireId) => {
+          if(questionnaireId.isFilled){
+            createGetAssessmentAPIPayload(questionnaireId);
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+function createGetAssessmentAPIPayload(questionnaireId) {
+  fetch('/read-assessment-request-base-structure', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        let baseStructure = data.data.base;
+        let baseInputs = baseStructure.inputs;
+        baseStructure.assessor = selectedAssessor.Id;
+        baseStructure.identifier ="id-"+Date.now()+ Math.floor(Math.random() * 1000);
+        baseStructure.completedDateTime = formatDate(new Date());
+        let assessmentQuestionsResponseDetails = baseStructure.assessmentDetails.assessmentQuestionsResponseDetails;
+        questionnaireId.response.forEach((item)=>{
+          baseInputs.questionResponses[item.developeName] = item.response;
+        });
+
+        questionnaireId.response.forEach((item)=>{
+          assessmentQuestionsResponseDetails[item.developeName] = {
+            originType: "Auto",
+            reviewerRole:selectedReviewer.Identifiers.records[0].IdTypeId,
+            reviewer:selectedReviewer.PersonContactId
+          };
+        });
+        console.log("Assessment Payload", baseStructure);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
   async function handleassessorSelect(element) {
     const $suggestionBox = $('#assessorSelectonList');
     const $element = $(element);
@@ -124,7 +183,7 @@
     $('#typeAheadassessorSelect').val(name);
     $suggestionBox.empty();
 
-    const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+    const query = `SELECT Id, Name, (SELECT IdValue, IdTypeId, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
     const param = {
         query : query,
         isSosl : false,
@@ -144,7 +203,7 @@
   $('#typeAheadReviewerSelect').val(name);
   $suggestionBox.empty();
 
-  const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+  const query = `SELECT Id, Name, PersonContactId, (SELECT IdValue, SourceSystem, IdTypeId, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
   const param = {
       query : query,
       isSosl : false,
@@ -190,6 +249,19 @@ async function updateQuestionListJson(key){
       console.error('Error:', error);
       return { success: false, error };
     }
+}
+
+function formatDate(date) {
+    // Create a new Date object
+    const offsetMinutes = date.getTimezoneOffset();
+    const offsetSign = offsetMinutes > 0 ? "-" : "+";
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const offsetHours = String(Math.floor(absoluteOffsetMinutes / 60)).padStart(2, "0");
+    const offsetMins = String(absoluteOffsetMinutes % 60).padStart(2, "0");
+    const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMins}`;
+
+    const formattedDate = date.toISOString().slice(0, -1); // Remove the Z at the end
+    return `${formattedDate}${timezoneOffset}`;
 }
  </script>
  <script src="utils/typeAheadScript.js"></script>"

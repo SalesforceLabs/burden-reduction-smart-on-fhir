@@ -167,6 +167,18 @@ router.post('/read-retrieve-questionnaire-sample-structure', async (req, res) =>
     res.json({ success: true, data: data});
 });
 
+router.post('/read-assessment-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/assessmentRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-questionnaire-list', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/questionnaireList.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
 router.post('/invoke-ip', async (req, res) => {
     // We know the type - everything. I see when i hit the request again and again payerConfig.json is turing in null values.
     // Understand why this is happening and fix it.
