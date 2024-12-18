@@ -1,0 +1,195 @@
+<%- include('header') -%>
+<div class="message-container">
+    <% const allSuccess = operationOutcome.every(outcome => outcome.code === "success"); %>
+    <% const message = operationOutcome[0]?.details.text || "Unknown operation outcome."; %>
+    <% if (allSuccess) { %>
+        <div class="alert alert-success text-center">
+            <%= "Successful Retrieval" %>
+        </div>
+    <% } else { %>
+        <div class="alert alert-danger text-center">
+            <%= message %>
+        </div>
+    <% } %>
+</div>
+
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <div class="title pb-5">
+            <h1 class="heading-style">Required Questionnaires</h1>
+            <span>Please fill these questionnaires</span>
+            <hr>
+            <% if (allSuccess) { %>
+                <table border="1">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Questionnaire Name</th>
+                      <th>Already Filled</th>
+                      <th>Fill Questionnaire</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% questionnaireIds.forEach((item, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td> 
+                        <td>Questionnaire <%= index + 1 %></td> 
+                        <td class="filled-checkbox">
+                            <input 
+                              type="checkbox" 
+                              <%= item.isFilled ? "checked" : "" %> 
+                              onchange="handleCheckboxChange('<%= item.Id %>', this.checked)">
+                          </td>
+                        <td>
+                          <button class="fillQuestionnaireButton" onclick="handleQuestionnaireClick('<%= item.Id %>')">
+                            Fill Questionnaire
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+                <br>
+                <div class="row mb-3">
+                  <div class="col-md-3"></div>
+                      <div class="col-md-3">
+                          <%- include('typeAhead', { elementId: 'typeAheadassessorSelect' , elementLabel: 'Select assessor'
+                          , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                          listId: 'assessorSelectonList' , onClickFunction: 'handleassessorSelect' ,
+                          condition: '' }) -%>
+                      </div>
+                      <div class="col-md-3">
+                        <%- include('typeAhead', { elementId: 'typeAheadReviewerSelect' , elementLabel: 'Select Reviewer'
+                        , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                        listId: 'reviewerSelectonList' , onClickFunction: 'handleReviewerSelect' ,
+                        condition: '' }) -%>
+                      </div>
+                      <div class="col-md-3"></div>
+                </div>
+                <div class="row mb-3">
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                      <input id="assessmentIdsCheckbox" type="checkbox" title="Assessment Ids are present">
+                      <button class="getAssessmentIdsButton" onclick="handleGetAssessmentIdsClick()">Get Assessment Ids</button>
+                      <button id="pasRequestButton" class="getAssessmentIdsButton" onclick="handleStartPasRequest()" disabled>Raise a PAS Request</button>
+                    </div>
+                </div>
+              <% } else { %>
+                <p>We could not fetch questionnaires!</p>
+              <% } %>
+        </div>
+    </div>
+</div>
+<%- include('footer') -%> 
+ 
+ <script>
+  const contextId = "<%= contextId %>";
+  let selectedAssessor, selectedReviewer;
+
+  function handleQuestionnaireClick(questionnaireId) {
+    if(contextId){
+      window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}&dtrContextId=${contextId}&source=dtr`;
+    } else {
+      window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}`;
+    }
+  }
+
+  function handleGetAssessmentIdsClick() {
+
+    if(!selectedAssessor || !selectedReviewer){
+      window.alert("Please select assessor and reviewer!");
+    }
+    else{
+      document.getElementById("pasRequestButton").removeAttribute("disabled");
+      document.getElementById("assessmentIdsCheckbox").checked = true;
+    }
+  }
+
+  function handleStartPasRequest() {
+    if(contextId){
+      window.location.href = `/pasRequestForm?contextId=${contextId}`;
+    } else {
+      window.location.href = `/pasRequestForm`;
+    }
+  }
+
+  function handleCheckboxChange(questionnaireId, isChecked) {
+    console.log(`Questionnaire ID: ${questionnaireId}, Is Filled: ${isChecked}`);
+  }
+
+  async function handleassessorSelect(element) {
+    const $suggestionBox = $('#assessorSelectonList');
+    const $element = $(element);
+    const name = $element.text();
+    const data = $element.data();
+    $('#typeAheadassessorSelect').val(name);
+    $suggestionBox.empty();
+
+    const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+    const param = {
+        query : query,
+        isSosl : false,
+        elementSourceMethod : '/fetchData',
+    }
+    const assessorDetails = await fetchData(param);
+    selectedAssessor = assessorDetails[0];
+    const updateResult = await updateQuestionListJson('assessor');
+    console.log(assessorDetails);
+ }
+
+ async function handleReviewerSelect(element) {
+  const $suggestionBox = $('#reviewerSelectonList');
+  const $element = $(element);
+  const name = $element.text();
+  const data = $element.data();
+  $('#typeAheadReviewerSelect').val(name);
+  $suggestionBox.empty();
+
+  const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+  const param = {
+      query : query,
+      isSosl : false,
+      elementSourceMethod : '/fetchData',
+  }
+  const reviewerDetails = await fetchData(param);
+  selectedReviewer = reviewerDetails[0];
+  const updateResult = await updateQuestionListJson('reviewer');
+  console.log(selectedReviewer);
+}
+
+async function updateQuestionListJson(key){
+    const subject = (key == 'assessor') ? selectedAssessor : selectedReviewer;
+    let payload = {};
+
+    if(subject.Identifiers.records.length>0){
+      payload = {
+        "IdValue" : subject.Identifiers.records[0].IdValue,
+        "SourceSystem" : subject.Identifiers.records[0].SourceSystem,
+        "key" : key
+      }
+    }
+
+    try {
+      const response = await fetch('/updateAssessorAndReviewer', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            input: payload 
+          })
+      });
+
+      const respdata = await response.json();
+
+      if (respdata.success) {
+          return { success: true };
+      } else {
+          return { success: false};
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      return { success: false, error };
+    }
+}
+ </script>
+ <script src="utils/typeAheadScript.js"></script>"

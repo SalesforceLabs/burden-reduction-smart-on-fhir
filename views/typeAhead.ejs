@@ -1,0 +1,48 @@
+<div >
+    <label for="<%= elementId %>"><%= elementLabel %>:</label>
+    <input type="text" id="<%= elementId %>" class="form-control" placeholder="Start typing...">
+    <ul id="<%= listId %>" class="list-group mt-2"></ul>
+</div>
+
+<script>
+    $(document).ready(function() {
+        
+        $('#<%= elementId %>').on('input', async function() {
+            const query = $(this).val().toLowerCase();
+            const $suggestionBox = $('#<%= listId %>');
+            const fieldListString = '<%= fields %>';
+            const fieldList = fieldListString.split(',');
+            $suggestionBox.empty();
+
+            if (query && query.length >=3) {
+
+                const param = {
+                    query : query,
+                    elementSourceMethod : '<%= elementSourceMethod %>',
+                    entityName : '<%= entityName %>',
+                    fields : '<%= fields %>',
+                    condition: '<%= condition %>',
+                    isSosl : true
+                }
+
+                const filteredSuggestions = await fetchData(param);
+
+                console.log('fields ', fieldList);
+                $suggestionBox.empty();
+                filteredSuggestions.forEach(item => {
+                    const $li = $('<li>').addClass('list-group-item').text(item.Name);
+                    fieldList.forEach(field => {
+                        $li.data(field, item[field]);
+                    });
+                    
+                    $li.on('click', function() {
+                        window['<%= onClickFunction %>'](this); // Invoke the function dynamically from the global scope
+                    });
+                    $suggestionBox.append($li);
+                });
+            }
+        });
+    });
+
+  
+</script>

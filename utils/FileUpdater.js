@@ -1,4 +1,5 @@
 const fs = require('fs');
+const InitializeApp = require('./InitilalizeApp');
 
 class FileUpdater {
     static async updateFile(filePath, updates) {
@@ -12,7 +13,7 @@ class FileUpdater {
 
             // Update the JSON data with the values from the updates object
             for (const key in updates) {
-                if (updates.hasOwnProperty(key) && jsonData.hasOwnProperty(key)) {
+                if (updates.hasOwnProperty(key)) {
                     jsonData[key] = updates[key];
                 }
             }
@@ -27,7 +28,7 @@ class FileUpdater {
         }
     }
 
-    static isConfigured(filePath, keys){
+    static async isConfigured(filePath, keys){
         try {
             // Read the existing file data
             //console.log(filePath);
@@ -41,6 +42,11 @@ class FileUpdater {
                 if (jsonData.hasOwnProperty(key) && jsonData[key] == null) {
                     return false;
                 }
+            }
+
+            if(keys.includes('accessToken') && keys.includes('instanceUrl')) {
+                const isActive = await InitializeApp.isAccessTokenActive({accessToken:jsonData.accessToken, instanceUrl:jsonData.instanceUrl});
+                if(!isActive) return false;
             }
 
             return true;
@@ -67,6 +73,18 @@ class FileUpdater {
             }
 
             return output;
+        } catch (error) {
+            console.error('Error reading file:', error);
+            throw error;
+        }
+    }
+
+    static getFile(filePath){
+        try {
+            // Read the existing file data
+            const data = fs.readFileSync(filePath, 'utf8');
+            // Parse the data as JSON
+            return JSON.parse(data);
         } catch (error) {
             console.error('Error reading file:', error);
             throw error;
