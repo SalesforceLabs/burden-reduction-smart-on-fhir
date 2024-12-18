@@ -214,6 +214,42 @@ router.post('/invokeCareServiceConnectAPI', async (req, res) => {
     }
 });
 
+router.post('/invokeGetAssessmentPostAPI', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const connectAPIBaseUrl = path.join(instanceUrl, process.env.SALESFORCE_PAS_ASSESSMENT_POST_API_QUERY);
+    const questionnaireFilePath = path.join(__dirname, 'config/questionnaireList.json');
+    try {
+        const questionnaireList = fileUpdater.getFile(questionnaireFilePath);
+        const filledQuestionnaires = questionnaireList.questionnaireIds.filter(q => q.isFilled);
+        const results = await Promise.all(
+            filledQuestionnaires.map(async questionnaire => {
+                const connectAPIUrl = `${connectAPIBaseUrl}/${questionnaire.Id}`;
+                const payload = { response: questionnaire.response };
+                try {
+                    const response = await axios.post(connectAPIUrl, payload, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    return { Id: questionnaire.Id, success: true, data: response.data };
+                } catch (error) {
+                    return { Id: questionnaire.Id, success: false, error: error.message };
+                }
+            })
+        );
+        res.json({
+            success: true,
+            results
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 router.post('/call-disc-api', async (req, res) => {
     const input = req.body;
     const processType = input.processType;
@@ -488,6 +524,28 @@ router.get('/getTableData', (req, res) => {
         }
     });
 });
+
+router.get('/fetch-field-value', async (req, res) => {
+    try {
+        const entity =  'ServiceInfoResponseAction';
+        const entityId = '1MOSB0000009ZHt4AM';
+        const entityField = 'Context';
+        const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v62.0/sobjects/${entity}/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${providerConfig.accessToken}`
+            }
+        });
+
+        const fieldValue = response.data[entityField]; 
+        console.log(fieldValue);
+        res.send(fieldValue);
+    } catch (error) {
+        console.error('Error fetching the field value:', error);
+        res.json({ success: false, error: 'Failed to fetch the field value.' });
+    }
+});
+
 
 router.get('/fetch-field-value', async (req, res) => {
     try {
