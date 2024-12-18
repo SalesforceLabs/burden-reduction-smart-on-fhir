@@ -1,0 +1,21 @@
+{
+    "base": {
+        "inputs": {
+            "questionResponses": {
+
+            }
+        },
+
+        "assessmentValues": {
+            "Assessment.AssessmentStatus": "Completed"
+        },
+        "completedDateTime": "2024-10-23T14:45:29.123+05:30",
+        "assessor": "001SG00000laIWPYA2",
+        "identifier": "Test identifier",
+        "assessmentDetails": {
+            "assessmentQuestionsResponseDetails": {
+               
+            }
+        }
+    }
+}

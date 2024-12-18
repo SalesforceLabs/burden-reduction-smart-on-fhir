@@ -86,6 +86,47 @@ router.post('/fetchData', async (req, res) => {
 
 });
 
+router.post('/post-connect-api', async (req, res) => {
+    const {instanceUrl, accessToken} = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+   
+    let currentData = {...fileUpdater.getFile(filePath)};
+    const input = req.body;
+    const omniprocessId = input.omniprocessId;
+    const queryTerm = input.api;
+    const subApiString = `services/data/v63.0/${queryTerm}`;
+    const apiString = path.join(instanceUrl, subApiString);
+
+    const apiUrl = encodeURI(apiString);
+    try {
+        const response = await axios.post(apiUrl, input.body, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Send the response directly, don't await res.json()
+        res.json({
+            success: true,
+            data: response.data
+        });
+
+        // Update the currentData after sending the response
+        const item = currentData.questionnaireIds.find(item => item.Id === omniprocessId);
+        if (item) {
+            item.assessmentId = response.data.assessmentId;
+            fileUpdater.updateFile(filePath, currentData);
+        }
+    } catch (error) {
+        console.error('Error making Post Call', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 router.post('/updateConfig', (req, res) => {
     const userType = req.body.userType;
     const baseUrl = req.body.baseUrl;
@@ -163,6 +204,18 @@ router.post('/read-order-select-service-sample-structure', async (req, res) => {
 
 router.post('/read-retrieve-questionnaire-sample-structure', async (req, res) => {
     var sampleServiceFilePath = path.join(__dirname, 'config/retrieveQuestionnaireRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-assessment-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/assessmentRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-questionnaire-list', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/questionnaireList.json');
     const data =  fileUpdater.getFile(sampleServiceFilePath);
     res.json({ success: true, data: data});
 });
