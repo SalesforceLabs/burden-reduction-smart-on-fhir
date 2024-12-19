@@ -86,6 +86,7 @@
  <script>
   const contextId = "<%= contextId %>";
   let selectedAssessor, selectedReviewer;
+  let selectedReviewerInPayerOrg, selectedAssessorInPayerOrg;
 
   function handleQuestionnaireClick(questionnaireId) {
     if(contextId){
@@ -157,7 +158,7 @@ function createGetAssessmentAPIPayload(questionnaireId) {
       if (data.success) {
         let baseStructure = data.data.base;
         let baseInputs = baseStructure.inputs;
-        baseStructure.assessor = selectedAssessor.Id;
+        baseStructure.assessor = selectedAssessorInPayerOrg.Id;
         baseStructure.identifier ="id-"+Date.now()+ Math.floor(Math.random() * 1000);
         baseStructure.completedDateTime = formatDate(new Date());
         let assessmentQuestionsResponseDetails = baseStructure.assessmentDetails.assessmentQuestionsResponseDetails;
@@ -168,8 +169,8 @@ function createGetAssessmentAPIPayload(questionnaireId) {
         questionnaireId.response.forEach((item)=>{
           assessmentQuestionsResponseDetails[item.developeName] = {
             originType: "Auto",
-            reviewerRole:selectedReviewer.Identifiers.records[0].IdTypeId,
-            reviewer:selectedReviewer.PersonContactId
+            reviewerRole:selectedReviewerInPayerOrg.Identifiers.records[0].IdTypeId, //payer reviewer codeset
+            reviewer:selectedReviewerInPayerOrg.PersonContactId//payer reviewer 
           };
         });
         console.log("Assessment Payload", baseStructure);
@@ -226,8 +227,18 @@ function createAssessment(payload, omniProcessId){
     }
     const assessorDetails = await fetchData(param);
     selectedAssessor = assessorDetails[0];
+
+    const payerQuery = `SELECT PersonContactId, Id, (SELECT IdTypeId FROM Identifiers) FROM Account WHERE Id IN (SELECT ParentRecordId FROM Identifier WHERE IdValue = '${selectedAssessor.Identifiers.records[0].IdValue}' AND SourceSystem = '${selectedAssessor.Identifiers.records[0].SourceSystem}') LIMIT 1`
+    const payerParam ={
+    query:payerQuery,
+    isSosl:false,
+    elementSourceMethod : '/fetchData',
+    config:'payer'
+  }
+  const assessorInPayer = await fetchData(payerParam);
+  selectedAssessorInPayerOrg = assessorInPayer[0];
     const updateResult = await updateQuestionListJson('assessor');
-    console.log(assessorDetails);
+    console.log(assessorDetails, selectedAssessorInPayerOrg);
  }
 
  async function handleReviewerSelect(element) {
@@ -246,8 +257,20 @@ function createAssessment(payload, omniProcessId){
   }
   const reviewerDetails = await fetchData(param);
   selectedReviewer = reviewerDetails[0];
+
+  //const payerQuery = `SELECT ParentRecordId, IdTypeId, IdUsageType FROM Identifier WHERE IdValue = '${selectedReviewer.Identifiers.records[0].IdValue}' AND SourceSystem ='${selectedReviewer.Identifiers.records[0].SourceSystem}'`;
+  const payerQuery = `SELECT PersonContactId, Id, (SELECT IdTypeId FROM Identifiers) FROM Account WHERE Id IN (SELECT ParentRecordId FROM Identifier WHERE IdValue = '${selectedReviewer.Identifiers.records[0].IdValue}' AND SourceSystem = '${selectedReviewer.Identifiers.records[0].SourceSystem}') LIMIT 1`
+  const payerParam ={
+    query:payerQuery,
+    isSosl:false,
+    elementSourceMethod : '/fetchData',
+    config:'payer'
+  }
+  const reviewerInPayer = await fetchData(payerParam);
+  selectedReviewerInPayerOrg = reviewerInPayer[0];
+
   const updateResult = await updateQuestionListJson('reviewer');
-  console.log(selectedReviewer);
+  console.log(selectedReviewer, selectedAssessorInPayerOrg);
 }
 
 async function updateQuestionListJson(key){
