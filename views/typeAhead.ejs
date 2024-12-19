@@ -12,6 +12,7 @@
             const $suggestionBox = $('#<%= listId %>');
             const fieldListString = '<%= fields %>';
             const fieldList = fieldListString.split(',');
+            const config = '<%= typeof config !== "undefined" && config ? config : "provider" %>';
             $suggestionBox.empty();
 
             if (query && query.length >=3) {
@@ -22,6 +23,7 @@
                     entityName : '<%= entityName %>',
                     fields : '<%= fields %>',
                     condition: '<%= condition %>',
+                    config : config,
                     isSosl : true
                 }
 

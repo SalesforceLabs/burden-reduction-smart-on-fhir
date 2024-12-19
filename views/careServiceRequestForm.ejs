@@ -73,6 +73,28 @@
                     }) -%>
                 </div>
             </div>
+
+            <% if (source != undefined && source == 'dtr') { %>
+                <hr>
+                <div class="form-group">
+                    <h3>Questionnaire Related Information</h3>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-md-6">
+                        <%- include('typeAhead',{
+                            elementId : 'assessmentCategory',
+                            elementLabel : 'Select Questionnaire Category',
+                            elementSourceMethod : '/fetchData',
+                            entityName : 'CodeSetBundle',
+                            fields: ['Id','Name'],
+                            listId: 'categoryList',
+                            onClickFunction: 'handleCategorySelect',
+                            config: 'payer',
+                            condition: ''
+                        }) -%>
+                    </div>
+            <% } %>        
+                </div>
             <div class="text-center">
                 <input class="btn btn-primary" type="submit" id="submit" value="Submit" disabled="disabled">
             </div>
@@ -88,7 +110,7 @@
     const contextId = "<%= contextId %>";
     const source = "<%= source %>";
 
-    let selectedPatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan ;
+    let selectedPatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan, selectedCategory;
     let requestForms = {};
     let selectedAssessments = [];
 
@@ -425,7 +447,18 @@
                         request.patient.birthDate = convertToDateTime(request.patient.birthDate);
                     }
 
-                    //request.assessmentLinks = selectedAssessments;
+                    if(selectedAssessments && selectedAssessments.length > 0){
+                        if(selectedCategory == undefined){
+                            window.alert("Please select a questionnaire category");
+                            resolve();
+                        }
+                        else {
+                            selectedAssessments.forEach(assessment =>{
+                               assessment.category = selectedCategory
+                            });
+                            request.assessmentLinks = selectedAssessments;
+                        }
+                    }
                 });
 
                 const careServiceApiResponse = await invokeCareServiceConnectApi(pasRequestPayload);
@@ -477,6 +510,18 @@
 
         const patientNode = await fetchPatientDetails(data.Id);
         selectedPatient =  createPatientNode(patientNode);
+     }
+
+     async function handleCategorySelect(element) {
+        const $suggestionBox = $('#categoryList');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#assessmentCategory').val(name);
+        $suggestionBox.empty();
+
+        const categoryId = data.Id;
+        selectedCategory =  categoryId;
      }
 
      async function fetchPatientDetails(patientId) {
