@@ -86,6 +86,47 @@ router.post('/fetchData', async (req, res) => {
 
 });
 
+router.post('/post-connect-api', async (req, res) => {
+    const {instanceUrl, accessToken} = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+   
+    let currentData = {...fileUpdater.getFile(filePath)};
+    const input = req.body;
+    const omniprocessId = input.omniprocessId;
+    const queryTerm = input.api;
+    const subApiString = `services/data/v63.0/${queryTerm}`;
+    const apiString = path.join(instanceUrl, subApiString);
+
+    const apiUrl = encodeURI(apiString);
+    try {
+        const response = await axios.post(apiUrl, input.body, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Send the response directly, don't await res.json()
+        res.json({
+            success: true,
+            data: response.data
+        });
+
+        // Update the currentData after sending the response
+        const item = currentData.questionnaireIds.find(item => item.Id === omniprocessId);
+        if (item) {
+            item.assessmentId = response.data.assessmentId;
+            fileUpdater.updateFile(filePath, currentData);
+        }
+    } catch (error) {
+        console.error('Error making Post Call', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 router.post('/updateConfig', (req, res) => {
     const userType = req.body.userType;
     const baseUrl = req.body.baseUrl;
@@ -167,6 +208,18 @@ router.post('/read-retrieve-questionnaire-sample-structure', async (req, res) =>
     res.json({ success: true, data: data});
 });
 
+router.post('/read-assessment-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/assessmentRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-questionnaire-list', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/questionnaireList.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
 router.post('/invoke-ip', async (req, res) => {
     // We know the type - everything. I see when i hit the request again and again payerConfig.json is turing in null values.
     // Understand why this is happening and fix it.
@@ -205,6 +258,42 @@ router.post('/invokeCareServiceConnectAPI', async (req, res) => {
         res.json({
             success: true,
             data: response.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+router.post('/invokeGetAssessmentPostAPI', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const connectAPIBaseUrl = path.join(instanceUrl, process.env.SALESFORCE_PAS_ASSESSMENT_POST_API_QUERY);
+    const questionnaireFilePath = path.join(__dirname, 'config/questionnaireList.json');
+    try {
+        const questionnaireList = fileUpdater.getFile(questionnaireFilePath);
+        const filledQuestionnaires = questionnaireList.questionnaireIds.filter(q => q.isFilled);
+        const results = await Promise.all(
+            filledQuestionnaires.map(async questionnaire => {
+                const connectAPIUrl = `${connectAPIBaseUrl}/${questionnaire.Id}`;
+                const payload = { response: questionnaire.response };
+                try {
+                    const response = await axios.post(connectAPIUrl, payload, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    return { Id: questionnaire.Id, success: true, data: response.data };
+                } catch (error) {
+                    return { Id: questionnaire.Id, success: false, error: error.message };
+                }
+            })
+        );
+        res.json({
+            success: true,
+            results
         });
     } catch (error) {
         res.status(500).json({
@@ -488,6 +577,28 @@ router.get('/getTableData', (req, res) => {
         }
     });
 });
+
+router.get('/fetch-field-value', async (req, res) => {
+    try {
+        const entity =  'ServiceInfoResponseAction';
+        const entityId = '1MOSB0000009ZHt4AM';
+        const entityField = 'Context';
+        const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v62.0/sobjects/${entity}/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${providerConfig.accessToken}`
+            }
+        });
+
+        const fieldValue = response.data[entityField]; 
+        console.log(fieldValue);
+        res.send(fieldValue);
+    } catch (error) {
+        console.error('Error fetching the field value:', error);
+        res.json({ success: false, error: 'Failed to fetch the field value.' });
+    }
+});
+
 
 router.get('/fetch-field-value', async (req, res) => {
     try {
