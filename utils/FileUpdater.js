@@ -13,7 +13,7 @@ class FileUpdater {
 
             // Update the JSON data with the values from the updates object
             for (const key in updates) {
-                if (updates.hasOwnProperty(key) && jsonData.hasOwnProperty(key)) {
+                if (updates.hasOwnProperty(key)) {
                     jsonData[key] = updates[key];
                 }
             }

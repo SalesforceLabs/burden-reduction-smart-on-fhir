@@ -1,0 +1,333 @@
+<%- include('header') -%>
+<div class="message-container">
+    <% const allSuccess = operationOutcome.every(outcome => outcome.code === "success"); %>
+    <% const message = operationOutcome[0]?.details.text || "Unknown operation outcome."; %>
+    <% if (allSuccess) { %>
+        <div class="alert alert-success text-center">
+            <%= "Successful Retrieval" %>
+        </div>
+    <% } else { %>
+        <div class="alert alert-danger text-center">
+            <%= message %>
+        </div>
+    <% } %>
+</div>
+
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <div class="title pb-5">
+            <h1 class="heading-style">Required Questionnaires</h1>
+            <span>Please fill these questionnaires</span>
+            <hr>
+            <% if (allSuccess) { %>
+                <table border="1">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Questionnaire Name</th>
+                      <th>Already Filled</th>
+                      <th>Fill Questionnaire</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% questionnaireIds.forEach((item, index) => { %>
+                      <tr>
+                        <td><%= index + 1 %></td> 
+                        <td>Questionnaire <%= index + 1 %></td> 
+                        <td class="filled-checkbox">
+                            <input 
+                              type="checkbox" 
+                              <%= item.isFilled ? "checked" : "" %> 
+                              onchange="handleCheckboxChange('<%= item.Id %>', this.checked)">
+                          </td>
+                        <td>
+                          <button class="fillQuestionnaireButton" onclick="handleQuestionnaireClick('<%= item.Id %>')">
+                            Fill Questionnaire
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+                <br>
+                <div class="row mb-3">
+                  <div class="col-md-3"></div>
+                      <div class="col-md-3">
+                          <%- include('typeAhead', { elementId: 'typeAheadassessorSelect' , elementLabel: 'Select assessor'
+                          , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                          listId: 'assessorSelectonList' , onClickFunction: 'handleassessorSelect' ,
+                          condition: '' }) -%>
+                      </div>
+                      <div class="col-md-3">
+                        <%- include('typeAhead', { elementId: 'typeAheadReviewerSelect' , elementLabel: 'Select Reviewer'
+                        , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                        listId: 'reviewerSelectonList' , onClickFunction: 'handleReviewerSelect' ,
+                        condition: '' }) -%>
+                      </div>
+                      <div class="col-md-3"></div>
+                </div>
+                <div class="row mb-3">
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                      <input id="assessmentIdsCheckbox" type="checkbox" title="Assessment Ids are present" disabled>
+                      <button class="getAssessmentIdsButton" onclick="handleGetAssessmentIdsClick()">Get Assessment Ids</button>
+                      <button id="pasRequestButton" class="getAssessmentIdsButton" onclick="handleStartPasRequest()" disabled>Raise a PAS Request</button>
+                    </div>
+                </div>
+              <% } else { %>
+                <p>We could not fetch questionnaires!</p>
+              <% } %>
+        </div>
+    </div>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div>
+</div>
+<%- include('footer') -%> 
+ 
+ <script>
+  const contextId = "<%= contextId %>";
+  let selectedAssessor, selectedReviewer;
+  let selectedReviewerInPayerOrg, selectedAssessorInPayerOrg;
+
+  function handleQuestionnaireClick(questionnaireId) {
+    if(contextId){
+      window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}&dtrContextId=${contextId}&source=dtr`;
+    } else {
+      window.location.href = `/launchQuestionnaire?contextId=${questionnaireId}`;
+    }
+  }
+
+  function handleGetAssessmentIdsClick() {
+    if(!selectedAssessor || !selectedReviewer){
+      window.alert("Please select assessor and reviewer!");
+    }
+    else{
+      document.getElementById("pasRequestButton").removeAttribute("disabled");
+      document.getElementById("assessmentIdsCheckbox").checked = true;
+      showSpinner(true);
+      createGetAssessmentAPIPayloadForEach()
+    }
+  }
+
+  function handleStartPasRequest() {
+    if(contextId){
+      window.location.href = `/UM-Workspace?contextId=${contextId}&selectedProcessType=pas&source=dtr`;
+    } else {
+      window.location.href = `/UM-Workspace?selectedProcessType=pas&source=dtr`;
+    }
+  }
+
+  function handleCheckboxChange(questionnaireId, isChecked) {
+    console.log(`Questionnaire ID: ${questionnaireId}, Is Filled: ${isChecked}`);
+  }
+
+  function createGetAssessmentAPIPayloadForEach(event) {
+  window.event.preventDefault();
+
+  fetch('/read-questionnaire-list', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        let questionnaireIds = data.data.questionnaireIds;
+        questionnaireIds.forEach((questionnaireId) => {
+          if(questionnaireId.isFilled){
+            createGetAssessmentAPIPayload(questionnaireId);
+          }
+        });
+      }
+    })
+    .catch(error => {
+      showSpinner(false)
+      console.error('Error:', error);
+    });
+}
+
+function createGetAssessmentAPIPayload(questionnaireId) {
+  fetch('/read-assessment-request-base-structure', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        let baseStructure = data.data.base;
+        let baseInputs = baseStructure.inputs;
+        baseStructure.assessor = selectedAssessorInPayerOrg.Id;
+        baseStructure.identifier ="id-"+Date.now()+ Math.floor(Math.random() * 1000);
+        baseStructure.completedDateTime = formatDate(new Date());
+        let assessmentQuestionsResponseDetails = baseStructure.assessmentDetails.assessmentQuestionsResponseDetails;
+        questionnaireId.response.forEach((item)=>{
+          baseInputs.questionResponses[item.developeName] = item.response;
+        });
+
+        questionnaireId.response.forEach((item)=>{
+          assessmentQuestionsResponseDetails[item.developeName] = {
+            originType: "Auto",
+            reviewerRole:selectedReviewerInPayerOrg.Identifiers.records[0].IdTypeId, //payer reviewer codeset
+            reviewer:selectedReviewerInPayerOrg.PersonContactId//payer reviewer 
+          };
+        });
+        console.log("Assessment Payload", baseStructure);
+        createAssessment(baseStructure, questionnaireId.Id);
+      }
+    })
+    .catch(error => {
+      showSpinner(false)
+      console.error('Error:', error);
+    });
+}
+
+function createAssessment(payload, omniProcessId){
+  const body ={
+      body:payload,
+      omniprocessId:omniProcessId,
+      api:`/connect/discovery-framework/assessment-responses/${omniProcessId}`
+  }
+  fetch('/post-connect-api', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body:JSON.stringify(body)
+  })
+    .then(response => response.json())
+    .then(data => {
+      showSpinner(false)
+      if (data.success) {
+        alert("Assessment ID :"+data.data.assessmentId)
+      }
+    })
+    .catch(error => {
+      showSpinner(false)
+      console.error('Error:', error);
+    });
+}
+
+
+
+  async function handleassessorSelect(element) {
+    const $suggestionBox = $('#assessorSelectonList');
+    const $element = $(element);
+    const name = $element.text();
+    const data = $element.data();
+    $('#typeAheadassessorSelect').val(name);
+    $suggestionBox.empty();
+
+    const query = `SELECT Id, Name, (SELECT IdValue, IdTypeId, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+    const param = {
+        query : query,
+        isSosl : false,
+        elementSourceMethod : '/fetchData',
+    }
+    const assessorDetails = await fetchData(param);
+    selectedAssessor = assessorDetails[0];
+
+    const payerQuery = `SELECT PersonContactId, Id, (SELECT IdTypeId FROM Identifiers) FROM Account WHERE Id IN (SELECT ParentRecordId FROM Identifier WHERE IdValue = '${selectedAssessor.Identifiers.records[0].IdValue}' AND SourceSystem = '${selectedAssessor.Identifiers.records[0].SourceSystem}') LIMIT 1`
+    const payerParam ={
+    query:payerQuery,
+    isSosl:false,
+    elementSourceMethod : '/fetchData',
+    config:'payer'
+  }
+  const assessorInPayer = await fetchData(payerParam);
+  selectedAssessorInPayerOrg = assessorInPayer[0];
+    const updateResult = await updateQuestionListJson('assessor');
+    console.log(assessorDetails, selectedAssessorInPayerOrg);
+ }
+
+ async function handleReviewerSelect(element) {
+  const $suggestionBox = $('#reviewerSelectonList');
+  const $element = $(element);
+  const name = $element.text();
+  const data = $element.data();
+  $('#typeAheadReviewerSelect').val(name);
+  $suggestionBox.empty();
+
+  const query = `SELECT Id, Name, PersonContactId, (SELECT IdValue, SourceSystem, IdTypeId, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+  const param = {
+      query : query,
+      isSosl : false,
+      elementSourceMethod : '/fetchData',
+  }
+  const reviewerDetails = await fetchData(param);
+  selectedReviewer = reviewerDetails[0];
+
+  //const payerQuery = `SELECT ParentRecordId, IdTypeId, IdUsageType FROM Identifier WHERE IdValue = '${selectedReviewer.Identifiers.records[0].IdValue}' AND SourceSystem ='${selectedReviewer.Identifiers.records[0].SourceSystem}'`;
+  const payerQuery = `SELECT PersonContactId, Id, (SELECT IdTypeId FROM Identifiers) FROM Account WHERE Id IN (SELECT ParentRecordId FROM Identifier WHERE IdValue = '${selectedReviewer.Identifiers.records[0].IdValue}' AND SourceSystem = '${selectedReviewer.Identifiers.records[0].SourceSystem}') LIMIT 1`
+  const payerParam ={
+    query:payerQuery,
+    isSosl:false,
+    elementSourceMethod : '/fetchData',
+    config:'payer'
+  }
+  const reviewerInPayer = await fetchData(payerParam);
+  selectedReviewerInPayerOrg = reviewerInPayer[0];
+
+  const updateResult = await updateQuestionListJson('reviewer');
+  console.log(selectedReviewer, selectedAssessorInPayerOrg);
+}
+
+async function updateQuestionListJson(key){
+    const subject = (key == 'assessor') ? selectedAssessor : selectedReviewer;
+    let payload = {};
+
+    if(subject.Identifiers.records.length>0){
+      payload = {
+        "IdValue" : subject.Identifiers.records[0].IdValue,
+        "SourceSystem" : subject.Identifiers.records[0].SourceSystem,
+        "key" : key
+      }
+    }
+
+    try {
+      const response = await fetch('/updateAssessorAndReviewer', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            input: payload 
+          })
+      });
+
+      const respdata = await response.json();
+
+      if (respdata.success) {
+          return { success: true };
+      } else {
+          return { success: false};
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      return { success: false, error };
+    }
+}
+
+function formatDate(date) {
+    // Create a new Date object
+    const offsetMinutes = date.getTimezoneOffset();
+    const offsetSign = offsetMinutes > 0 ? "-" : "+";
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const offsetHours = String(Math.floor(absoluteOffsetMinutes / 60)).padStart(2, "0");
+    const offsetMins = String(absoluteOffsetMinutes % 60).padStart(2, "0");
+    const timezoneOffset = `${offsetSign}${offsetHours}:${offsetMins}`;
+
+    const formattedDate = date.toISOString().slice(0, -1); // Remove the Z at the end
+    return `${formattedDate}${timezoneOffset}`;
+}
+
+function showSpinner(show){
+  const spinner = document.getElementById('spinner');
+                        const backdrop = document.getElementById('backdrop');
+
+                        spinner.style.display = show ? 'block': 'none';
+                        backdrop.style.display = show ? 'block':'none';
+}
+ </script>
+ <script src="utils/typeAheadScript.js"></script>"

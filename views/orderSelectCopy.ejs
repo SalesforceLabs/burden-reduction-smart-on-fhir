@@ -1,0 +1,71 @@
+
+<div class="text-center center-div" id="baseLogin">
+    <h1>Medication/Service Request</h1>
+    <form onsubmit="return createOrderSelectInput(event);">
+        <h3><label>Select Patient</label></h3>
+        <label for="patientLabel">Patient:</label>
+        <select name="patient" id="patient-select" onchange="handlePatient()" required>
+            <option value="">--Please select a patient--</option>
+            <option value="001SB00000MNQI5YAP">Pieter van de Heuvel</option>
+            <option value="001SB00000QmhN4YAJ">Charles Green</option>
+        </select>
+        
+        <hr>
+        <h3><label>Select Medication/Service Request</label></h3>
+        <label for="requestTypelabel">RequestType:</label>
+        <select name="requestType" id="request-type-select" onchange="handleRequestType()" required>
+            <option value="">--Please select request Type--</option>
+            <option value="medication">Medication</option>
+            <option value="service">Service</option>
+        </select>
+
+        <br/>
+        <br/>
+        
+        <label for="serviceLabel">Service:</label>
+        <select name="service" id="service-select" onchange="handleServiceRequest()" disabled="disabled" required>
+            <option value="">--Please select Service--</option>
+            <option value="617994">MRA Knee Vessels Right</option>
+            <option value="617995">MRA Knee Vessels Left</option>
+        </select>
+
+        <label for="medicationlabel">Medication:</label>
+        <select name="medication" id="medication-select" onchange="handleMedicationRequest()" disabled="disabled" required>
+            <option value="">--Please select Medication--</option>
+            <option value="617993">Amoxicillin 120 MG/ML</option>
+            <option value="617999">Paracetmol 650MG</option>
+        </select>
+        
+        <br/>
+        <br/>
+        
+        <label for="startDatelabel">StartDate:</label>
+        <input type="date" id="startDate" disabled="disabled">
+        <label for="endDatelabel">EndDate:</label>
+        <input type="date" id="endDate" disabled="disabled">
+        
+        <br/>
+        <br/>
+        
+        <label for="quantity">Quantity:</label>
+        <input type="text" id="quantity" name="quantity" oninput="handleQuantity()" disabled="disabled">
+        <hr>
+        <h3><label>Select Practitioner and Location</label></h3>
+        <label for="practitionerLabel">Practitioner:</label>
+        <select name="practitioner" id="practitioner-select" onchange="handlePractitioner()">
+            <option value="">--Please select a practitioner--</option>
+            <option value="001SB00000MNQMvYAP">Practitioner van de Heuvel</option>
+        </select>
+        <label for="locationLabel">Location:</label>
+        <select name="location" id="location-select" onchange="handleLocation()">
+            <option value="">--Please select a Location--</option>
+            <option value="0klSB0000000KjVYAU">Washington, DC metro area</option>
+        </select>
+        <br/>
+        <br/>
+        
+        <input type="submit" id="submit" value="Submit" disabled="disabled">
+    </form>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div> 
+</div>

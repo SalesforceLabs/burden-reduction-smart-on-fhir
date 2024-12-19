@@ -5,6 +5,7 @@ const path = require('path');
 var router = express.Router();
 var bodyParser = require('body-parser');
 var payerConfigFilePath = path.join(__dirname, 'config/payerConfig.json');
+var providerConfigFilePath = path.join(__dirname, 'config/providerConfig.json');
 const fileUpdater = require('./utils/FileUpdater');
 const utils = require('./utils/utils');
 require('dotenv').config();
@@ -57,10 +58,12 @@ router.post('/provider/oauthCallback', (req, res) => {
 
 router.post('/fetchData', async (req, res) => {
 
-    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
     const input = req.body;
-
-    const subApiString = 'services/data/v62.0/search?q=' + utils.makeSoslQuery(input);
+    const configFilePath = input.config == "payer" ? payerConfigFilePath : providerConfigFilePath;
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(configFilePath,['instanceUrl','accessToken']);
+   
+    const queryTerm = (input.isSosl == true ? 'search': 'query');
+    const subApiString = `services/data/v63.0/${queryTerm}?q=` + (input.isSosl == true ? utils.makeSoslQuery(input): input.queryString);
     const apiString = path.join(instanceUrl,subApiString);
 
     const apiUrl  = encodeURI(apiString);
@@ -71,7 +74,6 @@ router.post('/fetchData', async (req, res) => {
                 'Content-Type': 'application/json'
             }
         });
-        //send result back to oauth
         res.json({
             success: true,
             data: response.data
@@ -84,6 +86,47 @@ router.post('/fetchData', async (req, res) => {
         });
     }
 
+});
+
+router.post('/post-connect-api', async (req, res) => {
+    const {instanceUrl, accessToken} = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+   
+    let currentData = {...fileUpdater.getFile(filePath)};
+    const input = req.body;
+    const omniprocessId = input.omniprocessId;
+    const queryTerm = input.api;
+    const subApiString = `services/data/v63.0/${queryTerm}`;
+    const apiString = path.join(instanceUrl, subApiString);
+
+    const apiUrl = encodeURI(apiString);
+    try {
+        const response = await axios.post(apiUrl, input.body, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Send the response directly, don't await res.json()
+        res.json({
+            success: true,
+            data: response.data
+        });
+
+        // Update the currentData after sending the response
+        const item = currentData.questionnaireIds.find(item => item.Id === omniprocessId);
+        if (item) {
+            item.assessmentId = response.data.assessmentId;
+            fileUpdater.updateFile(filePath, currentData);
+        }
+    } catch (error) {
+        console.error('Error making Post Call', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 router.post('/updateConfig', (req, res) => {
@@ -143,8 +186,38 @@ router.post('/read-order-select-medication-sample-structure', async (req, res) =
     res.json({ success: true, data: data});
 });
 
+router.post('/read-order-select-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/orderSelectRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-care-service-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/careServiceRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
 router.post('/read-order-select-service-sample-structure', async (req, res) => {
     var sampleServiceFilePath = path.join(__dirname, 'config/orderSelectServiceRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-retrieve-questionnaire-sample-structure', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/retrieveQuestionnaireRequestStructure.json');
+    const data =  fileUpdater.getFile(sampleServiceFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-assessment-request-base-structure', async (req, res) => {
+    var samplerequestFilePath = path.join(__dirname, 'config/assessmentRequestBaseStructure.json');
+    const data =  fileUpdater.getFile(samplerequestFilePath);
+    res.json({ success: true, data: data});
+});
+
+router.post('/read-questionnaire-list', async (req, res) => {
+    var sampleServiceFilePath = path.join(__dirname, 'config/questionnaireList.json');
     const data =  fileUpdater.getFile(sampleServiceFilePath);
     res.json({ success: true, data: data});
 });
@@ -174,9 +247,70 @@ router.post('/invoke-ip', async (req, res) => {
     }
 });
 
+router.post('/invokeCareServiceConnectAPI', async (req, res) => {
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
+    const connectAPIUrl = path.join(instanceUrl, process.env.SALESFORCE_PAS_CONNECT_API_QUERY);
+    try {
+        const response = await axios.post(connectAPIUrl, req.body.input, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+router.post('/invokeGetAssessmentPostAPI', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const connectAPIBaseUrl = path.join(instanceUrl, process.env.SALESFORCE_PAS_ASSESSMENT_POST_API_QUERY);
+    const questionnaireFilePath = path.join(__dirname, 'config/questionnaireList.json');
+    try {
+        const questionnaireList = fileUpdater.getFile(questionnaireFilePath);
+        const filledQuestionnaires = questionnaireList.questionnaireIds.filter(q => q.isFilled);
+        const results = await Promise.all(
+            filledQuestionnaires.map(async questionnaire => {
+                const connectAPIUrl = `${connectAPIBaseUrl}/${questionnaire.Id}`;
+                const payload = { response: questionnaire.response };
+                try {
+                    const response = await axios.post(connectAPIUrl, payload, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    return { Id: questionnaire.Id, success: true, data: response.data };
+                } catch (error) {
+                    return { Id: questionnaire.Id, success: false, error: error.message };
+                }
+            })
+        );
+        res.json({
+            success: true,
+            results
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 router.post('/call-disc-api', async (req, res) => {
+    const input = req.body;
+    const processType = input.processType;
+    const discoveryApiRequestQuery = (processType == 'crd') ? process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY : (processType == 'dtr') ? process.env.SALESFORCE_DTR_DISCOVERY_API_QUERY : (processType == 'pas') ? process.env.SALESFORCE_PAS_DISCOVERY_API_QUERY : null;
     const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],)
-    const discoveryApiRequestUrl = path.join(instanceUrl, process.env.SALESFORCE_CRD_DISCOVERY_API_QUERY);
+    const discoveryApiRequestUrl = path.join(instanceUrl, discoveryApiRequestQuery);
 
     try {
         const response = await axios.get(discoveryApiRequestUrl, {
@@ -216,6 +350,139 @@ router.post('/useService', async (req, res) => {
     .catch(err => console.error('Update failed:', err));   
 });
 
+router.post('/fetchQuestionnaire', async (req, res) => {
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken'],);
+    const getQuestionnaireApiUrlBase = path.join(instanceUrl, process.env.SALESFORCE_DTR_GET_QUESTIONNAIRE_API_QUERY);
+    const omniprocessId = req.body.userInput;
+    const getQuestionnaireApiUrl = path.join(getQuestionnaireApiUrlBase, omniprocessId) + process.env.SALESFORCE_DTR_GET_QUESTIONNAIRE_API_QUERY_PARAMETER;
+    try {
+        const response = await axios.get(getQuestionnaireApiUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        //send result back to oauth
+        const root = JSON.parse(JSON.stringify(response.data));
+        res.render('questionnaire', {
+            title:"DTR Questionnaire",
+            root: root
+        })
+    } catch (error) {
+        console.error('Error making call to Get Questionnaire API:', error);
+        res.send('Sorry');
+    }
+});
+
+router.post('/fetchQuestionnaireResponse', async (req, res) => {
+    try {
+        const questionnaireId = req.body.questionnaireId;
+        const filePath = path.join(__dirname, `config/questionnaireList.json`);
+        const questionnaireList  = fileUpdater.getFile(filePath);
+
+        if(questionnaireList) {
+            const foundElement = questionnaireList.questionnaireIds.find(element => element.Id === questionnaireId);
+            if(foundElement) {
+                return res.status(200).json({ success: true, data: foundElement.response});
+            } else {
+                return res.status(200).json({success: false});
+            }
+        }
+    } catch (error) {
+        console.error('Error in /fetchQuestionnaireResponse:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+});
+
+
+
+router.post('/handleQuestionnaireSubmit', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const questionnaireList  = fileUpdater.getFile(filePath);
+
+    const formResponse = req.body.response;
+    const questionnaireId = req.body.questionnaireId;
+
+    questionnaireList.questionnaireIds.forEach(item => {
+        if(item.Id == questionnaireId){
+            item.response  = formResponse;
+            item.isFilled  = true;
+        }
+    });
+
+    fileUpdater.updateFile(filePath, {
+        questionnaireIds : questionnaireList.questionnaireIds
+    })
+    .then(() => {
+        console.log('Update complete for questionnaires');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err)); 
+
+});
+
+router.post('/updateQuestionnaireList', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const input = req.body.input;
+    questionnaireIds = input.questionnaireIds;
+    operationOutcome = input.operationOutcome;
+    dtrmetricId = input.dtrmetricId;
+    contextId = input.contextId;
+
+    fileUpdater.updateFile(filePath, {
+        questionnaireIds : questionnaireIds,
+        operationOutcome : operationOutcome,
+        dtrmetricId : dtrmetricId,
+        contextId : contextId
+    })
+    .then(() => {
+        console.log('Update complete for questionnaires');
+        res.json({ success: true});
+    })
+    .catch(err => console.error('Update failed:', err));
+});
+
+router.post('/updateAssessorAndReviewer', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const input = req.body.input;
+    const key = input.key;
+
+    if(key){
+        let payload = {};
+        payload[key] = {
+            IdValue : input.IdValue,
+            SourceSystem : input.SourceSystem
+        }
+        fileUpdater.updateFile(filePath, payload)
+        .then(() => {
+            console.log('Update complete for questionnaires');
+            res.json({ success: true});
+        })
+        .catch(err => console.error('Update failed:', err));
+    }
+});
+
+router.post('/getAssessmentIdsList', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const questionnaireList  = fileUpdater.getFile(filePath);
+    let response = [];
+
+    if(questionnaireList) {
+        questionnaireList.questionnaireIds.forEach(questionnaire => {
+            if(questionnaire.assessmentId){
+                response.push({
+                    id : questionnaire.assessmentId
+                })
+            }
+        });
+        return res.status(200).json({ success: true, data: response});
+    } else {
+        res.status(500).json({ success: false});
+    }
+});
+
+
+
 
 
 //Get Section
@@ -239,8 +506,44 @@ router.get('/payer-login', (req, res) => {
 //gets executed by the callback from oauth
 
 router.get('/order-select-form', (req,res)=>{
-    res.render('orderSelectRequest');
+    res.render('orderSelectRequest')
 })
+
+
+router.post('/retrieve-questionnaire-form', async (req, res) => {
+    const { instanceUrl, accessToken } = fileUpdater.getFile(payerConfigFilePath, ['instanceUrl', 'accessToken']);
+    const jsonInput = req.body.jsonInput;
+    const apiUrl = path.join(instanceUrl, process.env.SALESFORCE_INTEGRATION_PROCEDURE_URL_BASE + "/HlsDTR_RetrieveQuestionnaire");
+    console.log(apiUrl);
+
+    try {
+        const response = await axios.post(apiUrl, JSON.parse(jsonInput), {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: response.data,
+        });
+    } catch (error) {
+        console.error('Error making call to Retrieve Questionnaire API:', error.message);
+        res.render('retrieveQuestionnaireRequest', {
+            title: "Retrieve Questionnaire Response",
+            root: { error: error.message },
+        });
+    }
+});
+
+router.get('/retrieve-questionnaire-form', (req, res) => {
+    res.render('retrieveQuestionnaireRequest', {
+        title: "Retrieve Questionnaire Request Form",
+        root: null,
+    });
+});
+
+
 
 router.get('/payer/callback', (req, res) => { 
     res.render('callback', {
@@ -276,8 +579,14 @@ router.get('/payer/crdResponse', (req, res) => {
 });
 
 router.get('/UM-Workspace', (req, res) => {
+    const contextId = req.query.contextId;
+    const selectedProcessType = req.query.selectedProcessType;
+    const source = req.query.source;
     res.render('umWorkspace',{
         title:"UM Workspace",
+        contextId: contextId,
+        selectedProcessType: selectedProcessType,
+        source: source
     });
 });
 
@@ -307,6 +616,28 @@ router.get('/fetch-field-value', async (req, res) => {
         });
 
         const fieldValue = response.data[entityField]; 
+        console.log(fieldValue);
+        res.send(fieldValue);
+    } catch (error) {
+        console.error('Error fetching the field value:', error);
+        res.json({ success: false, error: 'Failed to fetch the field value.' });
+    }
+});
+
+
+router.get('/fetch-field-value', async (req, res) => {
+    try {
+        const entity =  'ServiceInfoResponseAction';
+        const entityId = '1MOSB0000009ZHt4AM';
+        const entityField = 'Context';
+        const providerConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/providerConfig.json')));
+        const response = await axios.get(`${providerConfig.instanceUrl}/services/data/v63.0/sobjects/${entity}/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${providerConfig.accessToken}`
+            }
+        });
+
+        const fieldValue = response.data[entityField]; 
         //console.log(fieldValue);
         res.send(fieldValue);
     } catch (error) {
@@ -314,5 +645,81 @@ router.get('/fetch-field-value', async (req, res) => {
         res.json({ success: false, error: 'Failed to fetch the field value.' });
     }
 });
+
+router.get('/loadQuestionnaire', (req, res) => {
+    const questionnaireInput = JSON.parse(fs.readFileSync(path.join(__dirname, 'backup/questionnaire.json')));
+    data = JSON.parse(req.query.data);
+    res.render('questionnaire', {
+        title:"DTR Questionnaire",
+        root: data.root
+    })
+});
+
+router.get('/launchQuestionnaire', (req, res) => {
+    const contextId = req.query.contextId;
+    const dtrContextId = req.query.dtrContextId;
+    res.render('launchQuestionnaire', {
+        title:"DTR Portal",
+        contextId: contextId,
+        dtrContextId: dtrContextId
+    })
+});
+
+router.get('/dtrResponse', (req, res) => {
+    const questionnaireList = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/questionnaireList.json')));
+    const contextId = req.query.contextId;
+    const payload = {
+        "questionnaireIds": questionnaireList.questionnaireIds,
+        "operationOutcome": questionnaireList.operationOutcome
+    }
+    res.render('dtrResponse', {
+        title:"DTR Questionnaires",
+        questionnaireIds : payload.questionnaireIds,
+        operationOutcome : payload.operationOutcome,
+        contextId : contextId
+
+    })
+});
+
+router.get('/pasRequestForm', (req, res) => {
+    const contextId = req.query.contextId;
+    const source = req.query.source;
+    res.render('careServiceRequestForm', {
+        title:"PAS Request Form",
+        contextId: contextId,
+        source : source
+    })
+});
+
+router.get('/dtrResponseWithPayload', (req, res) => {
+    const questionnaireList = JSON.parse(req.query.data);
+    
+    const payload = {
+        "questionnaireIds": questionnaireList.questionnaireIds,
+        "operationOutcome": questionnaireList.operationOutcome
+    }
+    res.render('dtrResponse', {
+        title:"DTR Questionnaires",
+        questionnaireIds : payload.questionnaireIds,
+        operationOutcome : payload.operationOutcome
+
+    })
+});
+
+router.get('/typeAhead', (req, res) => {
+    res.render('typeAheadUse', {
+        title:"Use Typeahead",
+    })
+});
+
+router.get('/pasResponse', (req, res) => {
+    const response = JSON.parse(req.query.data);
+    res.render('pasResponse', {
+        title:"PAS Response",
+        response: response
+    })
+});
+
+
 
 module.exports = router;

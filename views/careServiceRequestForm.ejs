@@ -1,28 +1,29 @@
-<%- include('header', {title: "Medication/Service Request"}) -%>
+<%- include('header', {title: "Prior Authorization Submit Request"}) -%>
 
 <div class="center-div">
     <div class="container w-80 border py-3">
         <div class="text-center title pb-2">
-            <h2 class="heading-style">Medication/Service Request</h2>
+            <h2 class="heading-style">Prior Authorization Submit Request</h2>
             <span>Select a Medication/Service to verify its coverage.</span>
         </div>
-        <form onsubmit="return createOrderSelectInputRefined(event);">
+        <form onsubmit="return createCareServiceRequestRefined(event);">
             <div class="form-group">
                 <h3 class="font-weight-bold">Patient Details</h3>
             </div>
-            <div class="form-group col-md-6">
-                <%- include('typeAhead',{
-                    elementId : 'typeAhead1',
-                    elementLabel : 'Select Patient',
-                    elementSourceMethod : '/fetchData',
-                    entityName : 'Account',
-                    fields: ['Id','Name'],
-                    listId: 'list1',
-                    onClickFunction: 'handlePatientSelect',
-                    condition: 'WHERE IsPersonAccount=true'
-                }) -%>
+            <div class="form-group row mb-3">
+                <div class="col-md-6">
+                    <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
+                        , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                        listId: 'patientSelectonList' , onClickFunction: 'handlePatientSelect' ,
+                        condition: 'WHERE IsPersonAccount=true' }) -%>
+                </div>
+                <div class="col-md-6">
+                    <%- include('typeAhead', { elementId: 'typeAheadMemberPlanSelect' ,
+                        elementLabel: 'Select Member Plan' , elementSourceMethod: '/fetchData' ,
+                        entityName: 'MemberPlan' , fields: ['Id', 'Name' ], listId: 'memberPlanSuggestionList' ,
+                        onClickFunction: 'handleMemberPlanSelection' , condition: '' }) -%>
+                </div>
             </div>
-        
             <hr/>
             <div class="form-group pb-2">
                 <h3>Medication/Service Request</h3>
@@ -83,11 +84,121 @@
 </div>
 <%- include('footer') -%>
 <script>
-    let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+
+    const contextId = "<%= contextId %>";
+    const source = "<%= source %>";
+
+    let selectedPatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan ;
     let requestForms = {};
-    document.getElementById('startDate').valueAsDate = new Date();
-    document.getElementById('endDate').valueAsDate = new Date();
-    document.getElementById('quantity').value = 0;
+    let selectedAssessments = [];
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        if (contextId) {
+            await prefillFormInformation();   
+        }
+
+        if(source && source == 'dtr') {
+            await getAssessmentIdNodes();
+        }
+    });
+
+    async function prefillFormInformation() {
+        if (contextId) {
+            try {
+                const spinner = document.getElementById('spinner');
+                const backdrop = document.getElementById('backdrop');
+
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+
+                let query = `SELECT Id, ResponseReferenceRecordId FROM ServiceInfoResponseAction WHERE Id = '${contextId}'`;
+                let param = { query: query, isSosl: false, elementSourceMethod: '/fetchData', config: 'payer'}; //fetching from payer
+                const response = await fetchData(param);
+
+                if (response.length > 0) {
+                    const respId = response[0].ResponseReferenceRecordId;
+                    query = `SELECT Id, ServiceInformationRequest.RequestPayload, (SELECT Id, MemberPlanId FROM SIRC_ServiceInformationResponses) FROM ServiceInformationResponse WHERE Id = '${respId}'`;
+                    param.query = query;
+
+                    const crdRequestData = await fetchData(param); //fetching from payer
+
+                    if (crdRequestData.length > 0) {
+                        const payload = JSON.parse(crdRequestData[0].ServiceInformationRequest.RequestPayload);
+                        const payerPatient = payload.prefetch.patient;
+                        query = `SELECT ParentRecordId, Id FROM Identifier WHERE IdValue = '${payerPatient.identifier[0].value}' AND SourceSystem = '${payerPatient.identifier[0].system}'`;
+                        param.config = 'provider';
+                        param.query = query;
+
+                        const providerPatientIdentifier = await fetchData(param);
+
+                        if(providerPatientIdentifier.length > 0) {
+                            selectedPatient = await fetchPatientDetails(providerPatientIdentifier[0].ParentRecordId);
+                            const patientName = selectedPatient.Name;
+                            selectedPatient = createPatientNode(selectedPatient);
+                            document.getElementById("typeAheadPatientSelect").value = patientName;
+                        }
+
+                        if (crdRequestData[0].SIRC_ServiceInformationResponses.records.length > 0) {
+                            const memberPlanId = crdRequestData[0].SIRC_ServiceInformationResponses.records[0].MemberPlanId;
+
+                            if (memberPlanId) {
+                                query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${memberPlanId}'`;
+                                param.query = query;
+                                param.config = 'payer';
+                                const memberPlanDetails = await fetchData(param);
+                                if (memberPlanDetails.length > 0) {
+                                    query =  `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND SourceSystemIdentifier = '${memberPlanDetails[0].SourceSystemIdentifier}' AND SourceSystem = '${memberPlanDetails[0].SourceSystem}' `;
+                                    param.query = query;
+                                    param.config = 'provider';
+                                    const providerMemberPlanDetails = await fetchData(param);
+                                    selectedMemberPlan = providerMemberPlanDetails[0];
+                                    document.getElementById("typeAheadMemberPlanSelect").value = selectedMemberPlan.Name;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+            }
+        }
+    }
+
+    function createPatientNode(patient) {
+        var patientNode = {
+                            "resourceType": "patient",
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive
+                        }
+        patientNode.identifier = createIdentifiers(patient);
+        patientNode.name = createName(patient);
+
+        return patientNode;
+     }
+
+    async function getAssessmentIdNodes() {
+
+        fetch('/getAssessmentIdsList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectedAssessments = data.data;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     function handleRequestType(formCount) {
         selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
@@ -135,6 +246,7 @@
             code: "617999",
             text: "Paracetmol 620 MG"
         };
+
         
         prepareForMedOrServiceSelection(formCount);
         const selected = document.getElementById(`medication-select-${formCount}`).value;
@@ -144,6 +256,21 @@
             selectedMedication = paracetmol;
         }
         populateRequestForm(formCount, 'selectedMedication', selectedMedication);
+    }
+
+    async function handleMemberPlanSelection(element) {
+        const $suggestionBox = $('#memberPlanSuggestionList');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+
+        $('#typeAheadMemberPlanSelect').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${data.Id}'`;
+        const param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
+        const memberPlanDetails = await fetchData(param);
+        selectedMemberPlan = memberPlanDetails[0];
     }
 
     function handleQuantity(formCount) {
@@ -161,11 +288,11 @@
         populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
     }
     
-    function createOrderSelectInputRefined() {
+    function createCareServiceRequestRefined() {
         event.preventDefault();        
 
         //fetch base structre
-        fetch('/read-order-select-request-base-structure', {
+        fetch('/read-care-service-request-base-structure', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -184,11 +311,12 @@
                     requestStructure.context.draftOrders.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
                 });
         
-                requestStructure.prefetch.patient = selectedpatient;
+                requestStructure.prefetch.patient = selectedPatient;
                 requestStructure.prefetch.practitioner = selectedPractitioner;
                 requestStructure.prefetch.location = selectedLocation;
+                requestStructure.memberPlan  = selectedMemberPlan;
         
-                invokeCrdApi(requestStructure);
+                invokeCareServiceApi(requestStructure);
             }
         })
         .catch(error => {
@@ -251,7 +379,7 @@
         document.getElementById(`quantity-${formCount}`).removeAttribute("disabled")
     }
 
-    function invokeCrdApi(data){
+    function invokeCareServiceApi(data){
         var spinner = document.getElementById('spinner');
         var backdrop = document.getElementById('backdrop');
 
@@ -266,17 +394,45 @@
             },
             body : JSON.stringify({
                 input : data,
-                ipName : "HlsClinicalDecisionSupport_ProcessOrderEcho",
-                ipSubtype: "ProcessOrderEcho"
+                ipName : "HlsPas_TransformCareServices",
+                ipSubtype: "TransformCareServices"
             })
         })
         .then(response => response.json())
-        .then(data => {
+        .then(async(data) => {
             if (data.success) {
-                // Hide the spinner after receiving the response
-                spinner.style.display = 'none';
-                backdrop.style.display = 'none';
-                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+                let pasRequestPayload = data.data;
+
+                pasRequestPayload.careRequestsList.forEach( request => {
+
+                    if(request.careRequestItems.length ==1 && request.careRequestItems[0] == "null"){
+                        request.careRequestItems = [];
+                    } else {
+                        request.careRequestItems.forEach ( cri => {
+                            delete cri.resourceType;
+                        } );
+                    }
+                    
+                    if(request.careRequestDrugs.length ==1 && request.careRequestDrugs[0] == "null"){
+                        request.careRequestDrugs = [];
+                    } else {
+                        request.careRequestDrugs.forEach ( crd => {
+                            delete crd.resourceType;
+                        } );
+                    }
+
+                    if(request.patient){
+                        request.patient.birthDate = convertToDateTime(request.patient.birthDate);
+                    }
+
+                    //request.assessmentLinks = selectedAssessments;
+                });
+
+                const careServiceApiResponse = await invokeCareServiceConnectApi(pasRequestPayload);
+                 // Hide the spinner after receiving the response
+                 spinner.style.display = 'none';
+                 backdrop.style.display = 'none';
+                window.location.href = window.location.href = "/pasResponse?data="+JSON.stringify(careServiceApiResponse); 
             } 
         })
         .catch(error => {
@@ -288,23 +444,58 @@
         });
      }
 
+     async function invokeCareServiceConnectApi(data) {
+        try {
+            const response = await fetch('/invokeCareServiceConnectAPI', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: data })
+            });
+    
+            const respdata = await response.json();
+    
+            if (respdata.success) {
+                return { success: true, response: respdata.data };
+            } else {
+                return { success: false };
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            return { success: false, error };
+        }
+     }
+
      async function handlePatientSelect(element) {
-        const $suggestionBox = $('#list1');
+        const $suggestionBox = $('#patientSelectonList');
         const $element = $(element);
         const name = $element.text();
         const data = $element.data();
-        $('#typeAhead1').val(name);
+        $('#typeAheadPatientSelect').val(name);
         $suggestionBox.empty();
 
-        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+        const patientNode = await fetchPatientDetails(data.Id);
+        selectedPatient =  createPatientNode(patientNode);
+     }
+
+     async function fetchPatientDetails(patientId) {
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${patientId}'`;
         const param = {
             query : query,
             isSosl : false,
             elementSourceMethod : '/fetchData',
         }
         const patientDetails = await fetchData(param);
-        const patientNode = createPatientNode(patientDetails[0]);
-        selectedpatient = patientNode;
+        return patientDetails[0];
+     }
+
+     function convertToDateTime(dateString){
+        const [yy, mm, dd] = dateString.split("-");
+        // Convert to Date
+        const fullYear = parseInt(yy) < 100 ? 1900 + parseInt(yy) : parseInt(yy); // Adjust for 2-digit year
+        const date = new Date(`${fullYear}-${mm}-${dd}T00:00:00Z`);
+        return date;
      }
 
      async function handlePractitionerSelect(element) {

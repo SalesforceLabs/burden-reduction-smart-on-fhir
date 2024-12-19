@@ -1,95 +1,187 @@
 <%- include('header') -%>
-
-    <div class="pt-5 mt-5">
-        <div class="row justify-content-center">
-            <h2 class="heading-style">Coverage Requirement Discovery Responses</h2>    
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <div class="title pb-3">
+            <h1 class="heading-style">Coverage Requirement Discovery Responses</h1>
+            <span>Please find the response of your CRD request(s)</span>
+            <hr>
         </div>
-    </div>
 
-    <div class="cardContainer">
-        <% if (operationalOutcome.issue[0].severity != 'error') { %>
-            <% cards.forEach(function(card, index) { const action=systemActions[index]; // Get corresponding systemAction
-                const modalId='modal-' + index; // Unique ID for each modal %>
-                <div class="card">
-                    <div class="card-header <%= card.indicator %>"><%= card.source.label %></div>
-                    <div class="card-body">
-                      <h3 class="card-title"> <%= card.summary %></h5>
-                    </div>
-                    <div class="card-footer">
-                        <a href="<%= card.links.url %>" class="btn btn-primary"  role="button" aria-disabled="true"><%= card.links.label %></a>
-                        <button type="button" class="btn btn-info" data-bs-toggle="modal"data-bs-target="#<%= modalId %>">
-                                View System Action
-                        </button>
-                    </div>
-                  </div>
+        <div class="cardContainer">
+            <% if (!operationalOutcome && cards) { %>
+                <table>
+                    <thead>
+                        <tr>
+                          <th>Request Number</th>
+                          <th>Response</th>
+                        </tr>
+                    </thead>
 
-                <!-- Modal for System Action -->
-                <div class="modal fade" id="<%= modalId %>" tabindex="-1" aria-labelledby="modalLabel-<%= index %>"
-                    aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="modalLabel-<%= index %>">System Action Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <% if (action) { %>
-                                    <h6 class="card-subtitle mb-2 text-muted">System Action: <%= action.type %>
-                                    </h6>
-                                    <p class="card-text">
-                                        <%= action.description %>
-                                    </p>
-                                    <p class="card-text"><strong>Resource Type:</strong>
-                                        <%= action.resource.resourceType %>
-                                    </p>
+                    <tbody>
+                        <% cards.forEach(function(card, index) { 
+                            const action=systemActions[index]; // Get corresponding systemAction
+                            const modalId='modal-' + index; // Unique ID for each modal %>
+                            <tr>
+                                <td>Request <%= index + 1 %></td>
+                                <td>
+                                    <div class="card">
+                                        <div class="card-header <%= card.indicator %>"><%= card.source.label %></div>
+                                        <div class="card-body">
+                                            <h3 class="card-title"> <%= card.summary %></h5>
+                                        </div>
+                                        <div class="card-footer">
+                                            <% if (card.links.url) { %>
+                                            <a href="<%= card.links.url %>" class="btn btn-primary"  role="button" aria-disabled="true"><%= card.links.label %></a>
+                                            <% } %>
+                                            <button type="button" class="btn btn-info" data-bs-toggle="modal"data-bs-target="#<%= modalId %>">
+                                                    View System Action
+                                            </button>
+                                            <% if (action && action.resource.extension['doc-needed'] && action.resource.extension['doc-needed'].value != 'not-needed' ) { %>
+                                                <button type="button" class="btn fillQuestionnaireButton" onclick='handleLaunchDTR("<%= action.resource.extension["coverage-assertion-id"].valueString %>")'>
+                                                    Launch DTR
+                                                </button>
+                                            <% } %>
+                                            <% if (action && action.resource.extension['pa-needed'] && action.resource.extension['pa-needed'].value != 'no-auth' ) { %>
+                                                <button type="button" class="btn fillQuestionnaireButton" onclick='handleLaunchPAS("<%= action.resource.extension["coverage-assertion-id"].valueString %>")'>
+                                                    Launch PAS
+                                                </button>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Modal for System Action -->
+                            <div class="modal fade modalTop" id="<%= modalId %>" tabindex="-1" aria-labelledby="modalLabel-<%= index %>"
+                                aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalLabel-<%= index %>">System Action Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <% if (action) { %>
+                                                <h6 class="card-subtitle mb-2 text-muted">System Action: <%= action.type %>
+                                                </h6>
+                                                <p class="card-text">
+                                                    <%= action.description %>
+                                                </p>
+                                                <p class="card-text"><strong>Resource Type:</strong>
+                                                    <%= action.resource.resourceType %>
+                                                </p>
 
-                                    <% if (action.resource.resourceType==='MedicationRequest' ) { %>
-                                        <p class="card-text"><strong>Medication:</strong>
-                                            <%= action.resource.entryInfo.medicationCodeableConcept.text %>
-                                        </p>
-                                        <p class="card-text"><strong>Effective Period:</strong>
-                                            <%= action.resource.entryInfo.effectiveDosePeriod.start %> to <%=
-                                                    action.resource.entryInfo.effectiveDosePeriod.end %>
-                                        </p>
-                                        <% } %>
-
-                                            <p class="card-text"><strong>Status:</strong>
-                                                <%= action.resource.entryInfo.status %>
-                                            </p>
-                                            <p class="card-text"><strong>Intent:</strong>
-                                                <%= action.resource.entryInfo.intent %>
-                                            </p>
-
-                                            <% if (action.resource.extension) { %>
-                                                <hr>
-                                                <h6 class="card-subtitle mb-2 text-muted">Extensions</h6>
-                                                <% Object.keys(action.resource.extension).forEach(function(key) { %>
-                                                    <p class="card-text"><strong>
-                                                            <%= key %>:
-                                                        </strong>
-                                                        <%= action.resource.extension[key].value !== undefined ?
-                                                            action.resource.extension[key].value :
-                                                            action.resource.extension[key].valueString !== undefined ?
-                                                            action.resource.extension[key].valueString : 
-                                                            action.resource.extension[key].valueDate !== undefined ?
-                                                            action.resource.extension[key].valueDate :
-                                                            action.resource.extension[key].valueContactPoint !== undefined ?
-                                                            action.resource.extension[key].valueContactPoint : null%>
+                                                <% if (action.resource.resourceType==='MedicationRequest' ) { %>
+                                                    <p class="card-text"><strong>Medication:</strong>
+                                                        <%= action.resource.medicationCodeableConcept.text %>
                                                     </p>
-                                                    <% }); %>
-                                                        <% } %>
-                                                            <% } %>
+                                                    <p class="card-text"><strong>Effective Period:</strong>
+                                                        <%= action.resource.effectiveDosePeriod.start %> to <%=
+                                                                action.resource.effectiveDosePeriod.end %>
+                                                    </p>
+                                                    <% } %>
+
+                                                        <p class="card-text"><strong>Status:</strong>
+                                                            <%= action.resource.status %>
+                                                        </p>
+                                                        <p class="card-text"><strong>Intent:</strong>
+                                                            <%= action.resource.intent %>
+                                                        </p>
+
+                                                        <% if (action.resource.extension) { %>
+                                                            <hr>
+                                                            <h6 class="card-subtitle mb-2 text-muted">Extensions</h6>
+                                                            <% Object.keys(action.resource.extension).forEach(function(key) { %>
+                                                                <p class="card-text"><strong>
+                                                                        <%= key %>:
+                                                                    </strong>
+                                                                    <%= action.resource.extension[key].value !== undefined ?
+                                                                        action.resource.extension[key].value :
+                                                                        action.resource.extension[key].valueString !== undefined ?
+                                                                        action.resource.extension[key].valueString : 
+                                                                        action.resource.extension[key].valueDate !== undefined ?
+                                                                        action.resource.extension[key].valueDate :
+                                                                        action.resource.extension[key].valueContactPoint !== undefined ?
+                                                                        action.resource.extension[key].valueContactPoint : null%>
+                                                                </p>
+                                                                <% }); %>
+                                                                    <% } %>
+                                                                        <% } %>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% }); %>
-        <% } else { %>
-            <p style="color:red" align="left">We encountered an error : <%= operationalOutcome.issue[0].details.text %></p>
-        <% } %>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else if(operationalOutcome) { %>
+                <p style="color:red" align="left">We encountered an error : <%= operationalOutcome.issue[0].details.text %></p>
+            <% } else { %>
+                <p style="color:red" align="left">We encountered an error. Please try again later.</p>
+                <% } %>
+        </div>
+
     </div>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div id="backdrop" class="backdrop" style="display: none;"></div>
+</div>
 
     <%- include('footer') -%>
+    <script>
+        function handleLaunchDTR(contextId) {
+            var spinner = document.getElementById('spinner');
+            var backdrop = document.getElementById('backdrop');
+
+            // Show the spinner
+            spinner.style.display = 'block';
+            backdrop.style.display = 'block';
+            const query = `SELECT Id FROM ServiceInfoResponseAction WHERE ResponseReferenceRecordId = '${contextId}'`;
+            const param = {
+                query: query,
+                isSosl: false,
+                elementSourceMethod: '/fetchData',
+                config: 'payer'
+            }
+            const response = fetchData(param)
+                .then(data => {
+                    spinner.style.display = 'none';
+                    backdrop.style.display = 'none';
+                    if (data[0].Id) {
+                        console.log("SIRA Context: ", data.Id)
+                        window.location.href = `/UM-Workspace?contextId=${data[0].Id}&selectedProcessType=dtr`;
+                    } else {
+                        console.log("No SIRA available");
+                    }
+                })
+        }
+
+        function handleLaunchPAS(contextId) {
+            var spinner = document.getElementById('spinner');
+            var backdrop = document.getElementById('backdrop');
+
+            // Show the spinner
+            spinner.style.display = 'block';
+            backdrop.style.display = 'block';
+            const query = `SELECT Id FROM ServiceInfoResponseAction WHERE ResponseReferenceRecordId = '${contextId}'`;
+            const param = {
+                query: query,
+                isSosl: false,
+                elementSourceMethod: '/fetchData',
+                config: 'payer'
+            }
+            const response = fetchData(param)
+                .then(data => {
+                    spinner.style.display = 'none';
+                    backdrop.style.display = 'none';
+                    if (data[0].Id) {
+                        console.log("SIRA Context: ", data.Id)
+                        window.location.href = `/UM-Workspace?contextId=${data[0].Id}&selectedProcessType=pas&source=crd`;
+                    } else {
+                        console.log("No SIRA available");
+                    }
+                })
+        }
+    </script>
+    <script src="../utils/typeAheadScript.js"></script>

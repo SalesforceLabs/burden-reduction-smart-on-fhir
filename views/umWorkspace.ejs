@@ -2,6 +2,7 @@
 <div class="text-center center-div" id="baseLogin">
     <div class="container w-45 border py-5">
         <h1 class="heading-style">Select a Utilization Management Operation</h1>
+        <hr>
         <br>
         
         <form>
@@ -14,7 +15,7 @@
                     <div class="input-group-prepend">
                       <label class="input-group-text bg-info text-white" for="inputGroupSelect01">Select Service</label>
                     </div>
-                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType()">
+                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType(this.value)">
                         <option selected>Choose...</option>
                         <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
                         <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
@@ -35,9 +36,23 @@
 <%- include('footer') -%>
 
 <script>
-    function loadProcessType() {
+    const contextId = '<%= contextId %>';
+    const selectedProcessType = '<%= selectedProcessType %>';
+    const source = '<%= source %>';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectElement = document.getElementById("processTypeDropdown");
+        if (selectedProcessType && selectElement) {
+        selectElement.value = selectedProcessType;
+        selectElement.onchange();
+        }
+      });
+
+    function loadProcessType(passedValue) {
         const processType = document.getElementById('processTypeDropdown').value;
         const processTypeContent = document.getElementById('processTypeContent');
+        const responseContainer = document.getElementById('responseContainer');
+        const tableContainer = document.getElementById('tableContainer');
         
         /*processTypeContent.classList.remove('active');
         processTypeContent.innerHTML = '';*/
@@ -48,12 +63,14 @@
               });
 
         } else if (processType === 'dtr') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Document Template & Rules', serviceName: 'some_dtr' }) %>`;
+            callDiscoveryApi({
+                processType:processType
+              });
         }
         else if (processType === 'pas') {
-            processTypeContent.classList.add('active');
-            processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Prior Authorization & Support', serviceName: 'some_pas' }) %>`;
+            callDiscoveryApi({
+                processType:processType
+              });
         }
     }
 </script>
@@ -85,9 +102,7 @@
     }
     function callDiscoveryApi(data){
         console.log('Discovery called with data:', data);
-        if (data.processType == 'crd') {
-           invokeCrdDiscoveryApi(data.input);
-        }
+        invokeDiscoveryApi(data.processType);
      }
 
      function invokeCrdApi(data){
@@ -129,7 +144,7 @@
         });
      }
 
-     function invokeCrdDiscoveryApi(data){
+     function invokeDiscoveryApi(data){
         var spinner = document.getElementById('spinner');
         var backdrop = document.getElementById('backdrop');
 
@@ -141,7 +156,10 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body : JSON.stringify({
+                processType : data
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -189,6 +207,7 @@
 
     function submitRowData(rowIndex) {
         const form = document.getElementById('form-' + rowIndex);
+        var querySuffix = '';
 
         const formData = new FormData(form);
         
@@ -198,11 +217,27 @@
             rowData[key] = value;
         });
 
+        if(contextId) {
+            querySuffix = `?contextId=${contextId}`;
+        }
+
+        if(source){
+            if(querySuffix.length > 0){
+                querySuffix += `&source=${source}`;
+            } else {
+                querySuffix += `?source=${source}`;
+            }
+        }
+
         // Log the rowData to see the values
         console.log('Row Data:', rowData);
         if(rowData.Type == "HlsClinicalDecisionSupport" && rowData.SubType == "ProcessOrderEcho"){
-            window.location.href = '/order-select-form';
-        }else{
+            window.location.href = '/order-select-form'+querySuffix;
+        }else if(rowData.Type == "HlsDTR" && rowData.SubType == "RetrieveQuestionnaire"){
+            window.location.href = '/retrieve-questionnaire-form'+querySuffix;
+        }else if(rowData.Type == "HlsPas" && rowData.SubType == "TransformCareServices" ) {
+            window.location.href = '/pasRequestForm'+querySuffix;
+        } else{
             fetch('/useService', {
                 method: 'POST',
                 headers: {
