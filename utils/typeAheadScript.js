@@ -6,6 +6,7 @@ async function  fetchData(input) {
     const fields = input.fields;
     const condition = input.condition;
     const isSosl = input.isSosl;
+    const config = input.config ? input.config : "provider";
 
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -20,7 +21,8 @@ async function  fetchData(input) {
             entityName: entityName,
             fields: fields,
             condition: condition,
-            isSosl: isSosl
+            isSosl: isSosl,
+            config: config
         })
     })
     .then(response => response.json())

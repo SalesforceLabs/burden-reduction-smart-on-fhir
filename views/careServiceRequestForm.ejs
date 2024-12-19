@@ -85,17 +85,24 @@
 <%- include('footer') -%>
 <script>
 
-    const context = "<%= contextId %>";
+    const contextId = "<%= contextId %>";
     const source = "<%= source %>";
+
+    let selectedPatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan ;
+    let requestForms = {};
+    let selectedAssessments = [];
 
     document.addEventListener("DOMContentLoaded", async function () {
         if (contextId) {
             await prefillFormInformation();   
         }
+
+        if(source && source == 'dtr') {
+            await getAssessmentIdNodes();
+        }
     });
 
     async function prefillFormInformation() {
-        await handlePayerSelection();
         if (contextId) {
             try {
                 const spinner = document.getElementById('spinner');
@@ -105,7 +112,7 @@
                 backdrop.style.display = 'block';
 
                 let query = `SELECT Id, ResponseReferenceRecordId FROM ServiceInfoResponseAction WHERE Id = '${contextId}'`;
-                let param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
+                let param = { query: query, isSosl: false, elementSourceMethod: '/fetchData', config: 'payer'}; //fetching from payer
                 const response = await fetchData(param);
 
                 if (response.length > 0) {
@@ -113,14 +120,23 @@
                     query = `SELECT Id, ServiceInformationRequest.RequestPayload, (SELECT Id, MemberPlanId FROM SIRC_ServiceInformationResponses) FROM ServiceInformationResponse WHERE Id = '${respId}'`;
                     param.query = query;
 
-                    const crdRequestData = await fetchData(param);
+                    const crdRequestData = await fetchData(param); //fetching from payer
 
                     if (crdRequestData.length > 0) {
                         const payload = JSON.parse(crdRequestData[0].ServiceInformationRequest.RequestPayload);
-                        selectedPatient = payload.prefetch.patient;
-                        selectedPatient.SourceSystemIdentifier = payload.prefetch.patient.identifier[0].value;
-                        const patientName = `${selectedPatient.name[0].given[0]} ${selectedPatient.name[0].family}`;
-                        document.getElementById("typeAheadPatientSelect").value = patientName;
+                        const payerPatient = payload.prefetch.patient;
+                        query = `SELECT ParentRecordId, Id FROM Identifier WHERE IdValue = '${payerPatient.identifier[0].value}' AND SourceSystem = '${payerPatient.identifier[0].system}'`;
+                        param.config = 'provider';
+                        param.query = query;
+
+                        const providerPatientIdentifier = await fetchData(param);
+
+                        if(providerPatientIdentifier.length > 0) {
+                            selectedPatient = await fetchPatientDetails(providerPatientIdentifier[0].ParentRecordId);
+                            const patientName = selectedPatient.Name;
+                            selectedPatient = createPatientNode(selectedPatient);
+                            document.getElementById("typeAheadPatientSelect").value = patientName;
+                        }
 
                         if (crdRequestData[0].SIRC_ServiceInformationResponses.records.length > 0) {
                             const memberPlanId = crdRequestData[0].SIRC_ServiceInformationResponses.records[0].MemberPlanId;
@@ -128,15 +144,19 @@
                             if (memberPlanId) {
                                 query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${memberPlanId}'`;
                                 param.query = query;
+                                param.config = 'payer';
                                 const memberPlanDetails = await fetchData(param);
                                 if (memberPlanDetails.length > 0) {
-                                    selectedMemberPlan = memberPlanDetails[0];
+                                    query =  `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND SourceSystemIdentifier = '${memberPlanDetails[0].SourceSystemIdentifier}' AND SourceSystem = '${memberPlanDetails[0].SourceSystem}' `;
+                                    param.query = query;
+                                    param.config = 'provider';
+                                    const providerMemberPlanDetails = await fetchData(param);
+                                    selectedMemberPlan = providerMemberPlanDetails[0];
                                     document.getElementById("typeAheadMemberPlanSelect").value = selectedMemberPlan.Name;
                                 }
                             }
                         }
                     }
-                    await updateCoverageDetails();
                 }
             } catch (e) {
                 console.error(e);
@@ -147,8 +167,38 @@
         }
     }
 
-    let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation, selectedMemberPlan;
-    let requestForms = {};
+    function createPatientNode(patient) {
+        var patientNode = {
+                            "resourceType": "patient",
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive
+                        }
+        patientNode.identifier = createIdentifiers(patient);
+        patientNode.name = createName(patient);
+
+        return patientNode;
+     }
+
+    async function getAssessmentIdNodes() {
+
+        fetch('/getAssessmentIdsList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectedAssessments = data.data;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     function handleRequestType(formCount) {
         selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
@@ -261,7 +311,7 @@
                     requestStructure.context.draftOrders.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
                 });
         
-                requestStructure.prefetch.patient = selectedpatient;
+                requestStructure.prefetch.patient = selectedPatient;
                 requestStructure.prefetch.practitioner = selectedPractitioner;
                 requestStructure.prefetch.location = selectedLocation;
                 requestStructure.memberPlan  = selectedMemberPlan;
@@ -374,6 +424,8 @@
                     if(request.patient){
                         request.patient.birthDate = convertToDateTime(request.patient.birthDate);
                     }
+
+                    //request.assessmentLinks = selectedAssessments;
                 });
 
                 const careServiceApiResponse = await invokeCareServiceConnectApi(pasRequestPayload);
@@ -423,15 +475,19 @@
         $('#typeAheadPatientSelect').val(name);
         $suggestionBox.empty();
 
-        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+        const patientNode = await fetchPatientDetails(data.Id);
+        selectedPatient =  createPatientNode(patientNode);
+     }
+
+     async function fetchPatientDetails(patientId) {
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${patientId}'`;
         const param = {
             query : query,
             isSosl : false,
             elementSourceMethod : '/fetchData',
         }
         const patientDetails = await fetchData(param);
-        const patientNode = createPatientNode(patientDetails[0]);
-        selectedpatient = patientNode;
+        return patientDetails[0];
      }
 
      function convertToDateTime(dateString){
