@@ -5,6 +5,7 @@ const path = require('path');
 var router = express.Router();
 var bodyParser = require('body-parser');
 var payerConfigFilePath = path.join(__dirname, 'config/payerConfig.json');
+var providerConfigFilePath = path.join(__dirname, 'config/providerConfig.json');
 const fileUpdater = require('./utils/FileUpdater');
 const utils = require('./utils/utils');
 require('dotenv').config();
@@ -57,9 +58,10 @@ router.post('/provider/oauthCallback', (req, res) => {
 
 router.post('/fetchData', async (req, res) => {
 
-    const {instanceUrl,accessToken}  = fileUpdater.getFile(payerConfigFilePath,['instanceUrl','accessToken']);
     const input = req.body;
-
+    const configFilePath = input.config == "payer" ? payerConfigFilePath : providerConfigFilePath;
+    const {instanceUrl,accessToken}  = fileUpdater.getFile(configFilePath,['instanceUrl','accessToken']);
+   
     const queryTerm = (input.isSosl == true ? 'search': 'query');
     const subApiString = `services/data/v63.0/${queryTerm}?q=` + (input.isSosl == true ? utils.makeSoslQuery(input): input.queryString);
     const apiString = path.join(instanceUrl,subApiString);
@@ -460,6 +462,27 @@ router.post('/updateAssessorAndReviewer', async (req, res) => {
     }
 });
 
+router.post('/getAssessmentIdsList', async (req, res) => {
+    const filePath = path.join(__dirname, `config/questionnaireList.json`);
+    const questionnaireList  = fileUpdater.getFile(filePath);
+    let response = [];
+
+    if(questionnaireList) {
+        questionnaireList.questionnaireIds.forEach(questionnaire => {
+            if(questionnaire.assessmentId){
+                response.push({
+                    id : questionnaire.assessmentId
+                })
+            }
+        });
+        return res.status(200).json({ success: true, data: response});
+    } else {
+        res.status(500).json({ success: false});
+    }
+});
+
+
+
 
 
 //Get Section
@@ -558,10 +581,12 @@ router.get('/payer/crdResponse', (req, res) => {
 router.get('/UM-Workspace', (req, res) => {
     const contextId = req.query.contextId;
     const selectedProcessType = req.query.selectedProcessType;
+    const source = req.query.source;
     res.render('umWorkspace',{
         title:"UM Workspace",
         contextId: contextId,
-        selectedProcessType: selectedProcessType
+        selectedProcessType: selectedProcessType,
+        source: source
     });
 });
 

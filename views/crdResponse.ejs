@@ -41,6 +41,11 @@
                                                     Launch DTR
                                                 </button>
                                             <% } %>
+                                            <% if (action && action.resource.extension['pa-needed'] && action.resource.extension['pa-needed'].value != 'no-auth' ) { %>
+                                                <button type="button" class="btn fillQuestionnaireButton" onclick='handleLaunchPAS("<%= action.resource.extension["coverage-assertion-id"].valueString %>")'>
+                                                    Launch PAS
+                                                </button>
+                                            <% } %>
                                         </div>
                                     </div>
                                 </td>
@@ -137,6 +142,7 @@
                 query: query,
                 isSosl: false,
                 elementSourceMethod: '/fetchData',
+                config: 'payer'
             }
             const response = fetchData(param)
                 .then(data => {
@@ -145,6 +151,33 @@
                     if (data[0].Id) {
                         console.log("SIRA Context: ", data.Id)
                         window.location.href = `/UM-Workspace?contextId=${data[0].Id}&selectedProcessType=dtr`;
+                    } else {
+                        console.log("No SIRA available");
+                    }
+                })
+        }
+
+        function handleLaunchPAS(contextId) {
+            var spinner = document.getElementById('spinner');
+            var backdrop = document.getElementById('backdrop');
+
+            // Show the spinner
+            spinner.style.display = 'block';
+            backdrop.style.display = 'block';
+            const query = `SELECT Id FROM ServiceInfoResponseAction WHERE ResponseReferenceRecordId = '${contextId}'`;
+            const param = {
+                query: query,
+                isSosl: false,
+                elementSourceMethod: '/fetchData',
+                config: 'payer'
+            }
+            const response = fetchData(param)
+                .then(data => {
+                    spinner.style.display = 'none';
+                    backdrop.style.display = 'none';
+                    if (data[0].Id) {
+                        console.log("SIRA Context: ", data.Id)
+                        window.location.href = `/UM-Workspace?contextId=${data[0].Id}&selectedProcessType=pas&source=crd`;
                     } else {
                         console.log("No SIRA available");
                     }

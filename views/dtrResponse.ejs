@@ -68,7 +68,7 @@
                 </div>
                 <div class="row mb-3">
                     <div style="display: flex; gap: 10px; justify-content: center;">
-                      <input id="assessmentIdsCheckbox" type="checkbox" title="Assessment Ids are present">
+                      <input id="assessmentIdsCheckbox" type="checkbox" title="Assessment Ids are present" disabled>
                       <button class="getAssessmentIdsButton" onclick="handleGetAssessmentIdsClick()">Get Assessment Ids</button>
                       <button id="pasRequestButton" class="getAssessmentIdsButton" onclick="handleStartPasRequest()" disabled>Raise a PAS Request</button>
                     </div>
@@ -109,9 +109,9 @@
 
   function handleStartPasRequest() {
     if(contextId){
-      window.location.href = `/pasRequestForm?contextId=${contextId}`;
+      window.location.href = `/UM-Workspace?contextId=${contextId}&selectedProcessType=pas&source=dtr`;
     } else {
-      window.location.href = `/pasRequestForm`;
+      window.location.href = `/UM-Workspace?selectedProcessType=pas&source=dtr`;
     }
   }
 

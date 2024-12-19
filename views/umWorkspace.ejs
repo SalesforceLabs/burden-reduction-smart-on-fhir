@@ -38,6 +38,7 @@
 <script>
     const contextId = '<%= contextId %>';
     const selectedProcessType = '<%= selectedProcessType %>';
+    const source = '<%= source %>';
 
     document.addEventListener("DOMContentLoaded", function () {
         const selectElement = document.getElementById("processTypeDropdown");
@@ -218,6 +219,14 @@
 
         if(contextId) {
             querySuffix = `?contextId=${contextId}`;
+        }
+
+        if(source){
+            if(querySuffix.length > 0){
+                querySuffix += `&source=${source}`;
+            } else {
+                querySuffix += `?source=${source}`;
+            }
         }
 
         // Log the rowData to see the values
