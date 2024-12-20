@@ -272,12 +272,14 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
             if (data.success) {
-                // Hide the spinner after receiving the response
-                spinner.style.display = 'none';
-                backdrop.style.display = 'none';
                 window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
-            } 
+            } else {
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data);
+            }
         })
         .catch(error => {
             console.log('Error:', error);
