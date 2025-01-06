@@ -3,7 +3,7 @@
     <div class="container w-45 border py-5">
         <div class="title pb-5">
             <h1 class="heading-style">Prior Authorization Submit Response </h1>
-            <span>Please find the care request(s) Id</span>
+            <span>Please find the Prior Auth request(s) Status</span>
             <hr>
 
             <% if (response.success) { %>
@@ -11,15 +11,15 @@
                     <thead>
                       <tr>
                         <th>No.</th>
-                        <th>Object Name</th>
-                        <th>Record Id</th>
+                        <th>Status</th>
+                        <th>Prior Auth Id</th>
                       </tr>
                     </thead>
                     <tbody>
                         <% response.response.result.forEach((item, index) => { %>
                             <tr>
                                 <td><%= index + 1 %></td>
-                                <td><%= item.objectType%></td>
+                                <td>Approved</td>
                                 <td><%= item.id%></td> 
                             </tr>
                             <%})  %>
