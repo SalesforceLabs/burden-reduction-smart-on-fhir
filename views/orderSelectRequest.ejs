@@ -83,7 +83,7 @@
 </div>
 <%- include('footer') -%>
 <script>
-    let selectedpatient, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+    let selectedpatient, selectedCoverage, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
     let requestForms = {};
     document.getElementById('startDate').valueAsDate = new Date();
     document.getElementById('endDate').valueAsDate = new Date();
@@ -185,6 +185,7 @@
                 });
         
                 requestStructure.prefetch.patient = selectedpatient;
+                requestStructure.prefetch.coverage = selectedCoverage;
                 requestStructure.prefetch.practitioner = selectedPractitioner;
                 requestStructure.prefetch.location = selectedLocation;
         
@@ -306,7 +307,9 @@
         }
         const patientDetails = await fetchData(param);
         const patientNode = createPatientNode(patientDetails[0]);
+        const coverageNode = createCoverageNode(patientNode);
         selectedpatient = patientNode;
+        selectedCoverage = coverageNode;
      }
 
      async function handlePractitionerSelect(element) {
@@ -360,6 +363,16 @@
         patientNode.name = createName(patient);
 
         return patientNode;
+     }
+
+     function createCoverageNode(patient) {
+        var coverageNode = {
+            "resourceType": "Coverage",
+            "MBIdentifier": []
+        }
+
+        coverageNode.MBIdentifier = patient.identifier;
+        return coverageNode;
      }
 
      function createPractitionerDetailsNode(patient) {
