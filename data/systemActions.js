@@ -15,7 +15,7 @@ const systemActions =  [
                     "coding": [
                         {
                             "display": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension",
-                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "system": "http://www.nlm.nih.gov/research/umls/cpt",
                             "code": "617993"
                         }
                     ]
@@ -114,7 +114,7 @@ const systemActions =  [
                     "text": "MRA Knee Vessels Right",
                     "coding": [
                         {
-                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "system": "http://www.nlm.nih.gov/research/umls/cpt",
                             "code": "617994"
                         }
                     ]

@@ -7,7 +7,7 @@
     "code": {
       "coding": [
         {
-          "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+          "system": "http://www.nlm.nih.gov/research/umls/cpt",
           "code": "617994"
         }
       ],

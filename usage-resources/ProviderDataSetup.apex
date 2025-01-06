@@ -55,7 +55,7 @@ public class CRDSampleData {
         insert(identifierToInsert);
 
         //todo: picklist
-        CodeSet codeSet = new CodeSet(Name = 'CB1-RxNorm',SourceSystem='http://www.nlm.nih.gov/research/umls/rxnorm', Code = '617993', IsActive=true);
+        CodeSet codeSet = new CodeSet(Name = 'CB1-RxNorm',SourceSystem='http://www.nlm.nih.gov/research/umls/cpt', Code = '617993', IsActive=true);
         insert(codeSet);
 
         // Create Coverage Benefits
