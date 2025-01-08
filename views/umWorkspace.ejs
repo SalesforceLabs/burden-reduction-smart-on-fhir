@@ -170,8 +170,10 @@
                 spinner.style.display = 'none';
                 backdrop.style.display = 'none';
                 console.log(data.data);
-
-                const columns = ['Type', 'SubType'];
+                let columns = ['Type', 'SubType'];
+                if(document.getElementById('processTypeDropdown').value=='crd'){
+                    columns = ['CDS Hook', 'Type', 'SubType'];
+                }
                 const tableData = prepareDataForTheTable(data.data);
                 const query = `columns=${encodeURIComponent(JSON.stringify(columns))}&rows=${encodeURIComponent(JSON.stringify(tableData))}`;
 
@@ -198,7 +200,12 @@
     function prepareDataForTheTable(data) {
         output = [];
         data.records.forEach((item) => {
-            output.push({ Type: item.Type, SubType: item.SubType });
+            if(document.getElementById('processTypeDropdown').value == 'crd' && item.SubType=='ProcessOrderEcho'){
+                output.push({ Type: item.Type, SubType: item.SubType, 'CDS Hook': 'order-select' });
+            } 
+            else {
+                output.push({ Type: item.Type, SubType: item.SubType });
+            }
         });
 
         console.log(output);
