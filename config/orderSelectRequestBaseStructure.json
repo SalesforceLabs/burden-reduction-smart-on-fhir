@@ -124,6 +124,17 @@
                         "value": "B1-S.F2.1.00"
                     }
                 ]
+            },
+            "coverage": {
+                "resourceType": "Coverage",
+                "MBIdentifier": [
+                   {
+                        "use": "usual",
+                        "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+                        "value": "1212123"
+                    }
+                ],
+                "subscriberId": "bsc-sbscrbrid-00A-001"
             }
         }
     },
