@@ -123,7 +123,6 @@
         populateRequestForm(formCount, 'selectedService', selectedService);
     }
 
-    // TODO: This should be coming from the unique codeset avaibale int he org.
     function handleMedicationRequest(formCount) {
         const amoxicillin = {
             system: "http://www.nlm.nih.gov/research/umls/cpt",
@@ -300,7 +299,7 @@
         $('#typeAhead1').val(name);
         $suggestionBox.empty();
 
-        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType, IdTypeId FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
         const param = {
             query : query,
             isSosl : false,
@@ -308,7 +307,7 @@
         }
         const patientDetails = await fetchData(param);
         const patientNode = createPatientNode(patientDetails[0]);
-        const coverageNode = await createCoverageNode(patientDetails[0]);
+        const coverageNode = createCoverageNode(patientNode);
         selectedpatient = patientNode;
         selectedCoverage = coverageNode;
      }
@@ -321,7 +320,7 @@
         $('#typeAhead2').val(name);
         $suggestionBox.empty();
 
-        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, (SELECT Id, SourceSystem, (SELECT IdValue, SourceSystem, IdUsageType, IdTypeId FROM Identifiers) FROM HealthcareProviders) FROM Account WHERE Id = '${data.Id}'`;
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, (SELECT Id, SourceSystem, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM HealthcareProviders) FROM Account WHERE Id = '${data.Id}'`;
         const param = {
             query : query,
             isSosl : false,
@@ -355,10 +354,10 @@
      function createPatientNode(patient) {
         var patientNode = {
                             "resourceType": "patient",
-                            "gender": patient?.PersonGender,
-                            "birthDate": patient?.PersonBirthdate,
-                            "subscriberId": patient?.SourceSystemIdentifier,
-                            "active": patient?.IsActive
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive
                         }
         patientNode.identifier = createIdentifiers(patient);
         patientNode.name = createName(patient);
@@ -366,114 +365,57 @@
         return patientNode;
      }
 
-     async function createCoverageNode(patient) {
+     function createCoverageNode(patient) {
         var coverageNode = {
-            "resourceType": "Coverage"
+            "resourceType": "Coverage",
+            "MBIdentifier": []
         }
 
-        if (!patient || !patient.Identifiers || !patient.Identifiers.records || patient.Identifiers.records.length === 0) {
-            coverageNode.identifier = [];
-        } else {
-            let coverageIdenitifer = [];
-            codesetIds = []
-            patient.Identifiers.records.forEach(identifier => {
-                if (identifier.IdTypeId)
-                    codesetIds.push(identifier.IdTypeId);
-            });
-    
-            let codesetDetailMap = {}
-            if (codesetIds.length > 0) {
-                const codesetIdsStr = codesetIds.map(id => `'${id}'`).join(', ');
-                const query = `SELECT Id, Code, SourceSystem FROM Codeset WHERE Code = 'MB' AND Id IN (${codesetIdsStr})`;
-                console.log(query);
-    
-                const param = {
-                    query : query,
-                    isSosl : false,
-                    elementSourceMethod : '/fetchData',
-                }
-    
-                let codesetDetails = await fetchData(param);
-                codesetDetailMap = codesetDetails?.reduce((obj, codeset) => {
-                    obj[codeset.Id] = codeset
-
-                    return obj;
-                }, {})
-            }
-            patient.Identifiers.records.forEach(identifier => {
-                let idn = {
-                    "value" :  identifier.IdValue,
-                    "system" : identifier.SourceSystem,
-                    "use" : identifier.IdUsageType,
-                }
-
-                if (identifier.IdTypeId && codesetDetailMap !== null && codesetDetailMap[identifier.IdTypeId]) {
-                    idn.type = createType(codesetDetailMap[identifier.IdTypeId])
-                }
-                coverageIdenitifer.push(idn);
-            });
-            coverageNode.identifier = coverageIdenitifer;
-        }
-        
-        coverageNode.subscriberId = patient.SourceSystemIdentifier;
+        coverageNode.MBIdentifier = patient.identifier;
+        coverageNode.subscriberId = patient.subscriberId;
         return coverageNode;
      }
 
-     function createType (codeset) {
-        let c = {
-            "system": codeset.SourceSystem,
-            "code": codeset.Code
-        }
-
-        return {
-            coding: [c]
-        }
-     }
-
-     function createPractitionerDetailsNode(practitioner) {
+     function createPractitionerDetailsNode(patient) {
 
         var practitionerNode = {
                             "resourceType": "practitioner",
-                            "gender": practitioner.PersonGender,
-                            "birthDate": practitioner.PersonBirthdate,
-                            "subscriberId": practitioner.SourceSystemIdentifier,
-                            "active": practitioner.IsActive,
+                            "gender": patient.PersonGender,
+                            "birthDate": patient.PersonBirthdate,
+                            "subscriberId": patient.SourceSystemIdentifier,
+                            "active": patient.IsActive,
                             "identifier":[]
         }
 
-        if(practitioner?.HealthcareProviders?.records?.length > 0){
-            practitioner.HealthcareProviders.records.forEach( hcpRecord => {
+        if(patient.HealthcareProviders.records.length > 0){
+            patient.HealthcareProviders.records.forEach( hcpRecord => {
                 practitionerNode.identifier.push(...createIdentifiers(hcpRecord));
             })
         }
 
-        practitionerNode.name = createName(practitioner);
+        practitionerNode.name = createName(patient);
         return practitionerNode;
      }
 
-     function createLocationDetailsNode(location) {
+     function createLocationDetailsNode(patient) {
         var locationNode = {
             "resourceType": "Location",
-            "name": location?.Location?.Name,
+            "name": patient.Location.Name,
             "status": "active"
         }
 
-        locationNode.identifier = createIdentifiers(location);
+        locationNode.identifier = createIdentifiers(patient);
         return locationNode;
      }
 
-    function createIdentifiers(sobject) {
+     function createIdentifiers(patient) {
         var identifiers = [];
-        let codesetIds = [];
-        if (!sobject || !sobject.Identifiers || !sobject.Identifiers.records) return identifiers;
-        
-        sobject?.Identifiers?.records?.forEach( identifier => {
-            let idn = {
+        patient.Identifiers.records.forEach( identifier => {
+            identifiers.push({
                 "value" :  identifier.IdValue,
                 "system" : identifier.SourceSystem,
-                "use" : identifier.IdUsageType,
-            }
-            identifiers.push(idn)
+                "use" : identifier.IdUsageType
+            })
         })
 
         return identifiers;
@@ -484,8 +426,8 @@
         var name = {};
 
         name.use = "usual";
-        name.family = patient?.LastName;
-        name.given = [patient?.FirstName];
+        name.family = patient.LastName;
+        name.given = [patient.FirstName];
         name.suffix  = ["Msc"];
 
         names.push(name);
