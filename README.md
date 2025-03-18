@@ -8,6 +8,8 @@ Steps to setup data:
 1. In the payer salesforce org, execute usage-resources/PayerDataSetup.apex
 2. In the provider salesforce org, execute usage-resources/ProviderDataSetup.apex
 
+3. PayerDataSetup includes saving Members, Providers, Provider Locations, Payer Networks, Facilities, Facility Networks, CodeSets, CodeSetBundles, Purchaser Plans, Plan Benefits, Plan Benefit Items, Member Plan, Coverage Benefits, Coverage Benefit Items, Coverage Benefit Item Limits, Identifiers.
+
 Steps to start the app:
 1. Clone the repository.
 2. run command npm install to install all the dependencies mentioned in the package.json.
