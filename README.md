@@ -13,11 +13,11 @@ Steps to setup data:
 5. The NodeApp fetches patient info along with their Identifiers, it forms a sample CDS payload with hard-coded Service and Medication Requests.
 6. Node App 1.0 demo includes four use cases mentioned below.
 
-patient_name, Medicatation/Service,  Name, Docs_Needed, Prioir_Auth_Approval
-Sophia, Service,  MRA Knee Vessels Right, "clinical, No Prior Authorization"
-Sophia, Medication, Paracetamol, Admin, "Prior Authorization Needed"
-Sophia, Medicaiton, Amoxicillin, NA, "Authorization Satisfied"
-Sophia, MRA Knee Vessel Left, admin, "Performer Prior Authorization"
+patient_name	 Medicatation/Service	  Name	 Docs_Needed	 Prioir_Auth_Approval
+Sophia	 Service	  MRA Knee Vessels Right	 "clinical	 No Prior Authorization"
+Sophia	 Medication	 Paracetamol	 Admin	 "Prior Authorization Needed"
+Sophia	 Medicaiton	 Amoxicillin	 NA	 "Authorization Satisfied"
+Sophia	 MRA Knee Vessel Left	 admin	 "Performer Prior Authorization"
 
 
 
