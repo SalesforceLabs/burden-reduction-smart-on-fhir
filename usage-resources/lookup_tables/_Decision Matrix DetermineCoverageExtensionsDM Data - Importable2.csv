@@ -1,0 +1,13 @@
+CPTCode,PlanType,Gender,Age,ServicingProvider,DocsNeeded,LinkLabel,LinkURL,LinkType
+617994,PPO,Male,30,Cleveland Clinic,clinical,MRA Guidelines,https://www.radiologyinfo.org/en/info/angiomr,absolute
+617999,PPO,Male,30,Cleveland Clinic,admin,Paracetamol Usage,https://www.nhsinform.scot/tests-and-treatments/medicines-and-medical-aids/types-of-medicine/paracetamol/,absolute
+617993,PPO,Male,30,Cleveland Clinic,NA,Amoxicilin Guideline,https://www.ncbi.nlm.nih.gov/books/NBK482250/,absolute
+617995,PPO,Male,30,Cleveland Clinic,admin,MRI Guidelines,https://www.hopkinsmedicine.org/health/treatment-tests-and-therapies/magnetic-resonance-angiography-mra,absolute
+617994,PPO,Female,24,Cleveland Clinic,clinical,MRA Guidelines,https://www.radiologyinfo.org/en/info/angiomr,absolute
+617999,PPO,Female,24,Cleveland Clinic,admin,Paracetamol Usage,https://www.nhsinform.scot/tests-and-treatments/medicines-and-medical-aids/types-of-medicine/paracetamol/,absolute
+617993,PPO,Female,24,Cleveland Clinic,NA,Amoxicilin Guideline,https://www.ncbi.nlm.nih.gov/books/NBK482250/,absolute
+617995,PPO,Female,24,Cleveland Clinic,admin,MRI Guidelines,https://www.hopkinsmedicine.org/health/treatment-tests-and-therapies/magnetic-resonance-angiography-mra,absolute
+617994,PPO,Male,30,Avivamax,clinical,MRA Guidelines,https://www.radiologyinfo.org/en/info/angiomr,absolute
+617999,PPO,Male,30,Avivamax,admin,Paracetamol Usage,https://www.nhsinform.scot/tests-and-treatments/medicines-and-medical-aids/types-of-medicine/paracetamol/,absolute
+617993,PPO,Male,30,Avivamax,NA,Amoxicilin Guideline,https://www.ncbi.nlm.nih.gov/books/NBK482250/,absolute
+617995,PPO,Male,30,Avivamax,admin,MRI Guidelines,https://www.hopkinsmedicine.org/health/treatment-tests-and-therapies/magnetic-resonance-angiography-mra,absolute

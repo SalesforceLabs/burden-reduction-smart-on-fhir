@@ -34,7 +34,7 @@
                                             <a href="<%= card.links.url %>" class="btn btn-primary"  role="button" aria-disabled="true"><%= card.links.label %></a>
                                             <% } %>
                                             <button type="button" class="btn btn-info" data-bs-toggle="modal"data-bs-target="#<%= modalId %>">
-                                                    View System Action
+                                                    View System Actions
                                             </button>
                                             <% if (action && action.resource.extension['doc-needed'] && action.resource.extension['doc-needed'].value != 'not-needed' ) { %>
                                                 <button type="button" class="btn fillQuestionnaireButton" onclick='handleLaunchDTR("<%= action.resource.extension["coverage-assertion-id"].valueString %>")'>
@@ -56,7 +56,7 @@
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="modalLabel-<%= index %>">System Action Details</h5>
+                                            <h5 class="modal-title" id="modalLabel-<%= index %>">System Actions</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
