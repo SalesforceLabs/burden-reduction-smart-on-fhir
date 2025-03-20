@@ -1,0 +1,574 @@
+<%- include('header', { title: "Retrieve Questionnaire Request Form" }) -%>
+    <div class="center-div">
+        <div class="container w-80 border py-3">
+            <div class="text-center title pb-2">
+                <h2 class="heading-style">Retrieve Questionnaires</h2>
+                <span>Select a Patient and Member Plan to autopopulate some fields.</span>
+                <hr>
+            </div>
+            <form onsubmit="return createRetrieveQuestionnaireInput(event);">
+                <div class="form-group">
+                    <h3 class="font-weight-bold">Patient & Member Plan Details</h3>
+                </div>
+                <div class="form-group row mb-3">
+                    <div class="col-md-6">
+                        <%- include('typeAhead', { elementId: 'typeAheadPatientSelect' , elementLabel: 'Select Patient'
+                            , elementSourceMethod: '/fetchData' , entityName: 'Account' , fields: ['Id', 'Name' ],
+                            listId: 'patientSuggestionList' , onClickFunction: 'handlePatientSelection' ,
+                            condition: 'WHERE IsPersonAccount=true' }) -%>
+                    </div>
+                    <div class="col-md-6">
+                        <%- include('typeAhead', { elementId: 'typeAheadMemberPlanSelect' ,
+                            elementLabel: 'Select Member Plan' , elementSourceMethod: '/fetchData' ,
+                            entityName: 'MemberPlan' , fields: ['Id', 'Name' ], listId: 'memberPlanSuggestionList' ,
+                            onClickFunction: 'handleMemberPlanSelection' , condition: '' }) -%>
+                    </div>
+
+                </div>
+                <div class="form-group pt-2 pb-2">
+                    <h3>Medication/Service Request</h3>
+                </div>
+
+                <div id="dynamicRequestForms"></div>
+                <div id="add-request-button" class="row pb-2">
+                    <div class="col">
+                        <div class="btn-right-align">
+                            <button id="addForm" class="btn btn-primary btn-sm" type="button" title="Add a new request">
+                                <i class="fas fa-plus btn-icon"></i>
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group pb-2" hidden>
+                    <h3>Referenced</h3>
+                </div>
+
+                <div id="dynamicReferenceForms" hidden></div>
+                <div class="row pb-2" hidden>
+                    <div class="col">
+                        <div class="btn-right-align">
+                            <button id="addReferencedItem" class="btn btn-primary btn-sm" type="button"
+                                title="Add a new referenced item">
+                                <i class="fas fa-plus btn-icon"></i>
+                                Add Referenced Item
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group pb-2">
+                    <h3>Coverage</h3>
+                </div>
+
+                <div id="dynamicCoverageForms"></div>
+
+                <hr />
+                <div class="text-center">
+                    <input class="btn btn-primary" type="submit" id="submit" value="Submit" disabled="disabled" />
+                </div>
+            </form>
+
+            <div id="spinner" class="spinner" style="display: none;"></div>
+            <div id="backdrop" class="backdrop" style="display: none;"></div>
+        </div>
+    </div>
+    <%- include('footer') -%>
+        <script src="utils/referencedRequestForm.js"></script>
+        <script src="utils/coverageRequestForm.js"></script>
+        <script src="utils/requestForm.js"></script>
+        <script src="utils/typeAheadScript.js"></script>
+
+        <script>
+            let selectedPatient = null;
+            let selectedPayer = null;
+            let selectedMemberPlan = null;
+            let selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate;
+            let requestForms = {};
+            let referencedForms = {};
+            let coverage = {};
+
+            const params = new URLSearchParams(window.location.search);
+            const contextId = params.get('contextId');
+
+            document.addEventListener("DOMContentLoaded", async function () {
+                await prefillFormInformation();
+
+                // Check if contextId is present
+                if (contextId) {
+                    document.getElementById("submit").removeAttribute("disabled")
+
+                    const dynamicRequestForms = document.getElementById("dynamicRequestForms");
+                    if (dynamicRequestForms.children.length === 0) {
+                        // Keep the "Add" button
+                        document.getElementById("add-request-button").style.display = "block"; // Show the button
+                    } else {
+                        // Remove the "Add" button if there are children
+                        document.getElementById("add-request-button").style.display = "none"; // Hide the button
+                    }
+                } else {
+                    // If contextId is not present, you might want to show the button
+                    document.getElementById("add-request-button").style.display = "block"; // Show the button
+                }
+
+            });
+
+            async function prefillFormInformation() {
+                const spinner = document.getElementById('spinner');
+                const backdrop = document.getElementById('backdrop');
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+                await handlePayerSelection();
+                if (contextId) {
+                    try {
+                        let query = `SELECT Id, ResponseReferenceRecordId FROM ServiceInfoResponseAction WHERE Id = '${contextId}'`;
+                        let param = { query: query, isSosl: false, elementSourceMethod: '/fetchData', config: 'payer'}; //fetching from payer
+                        const response = await fetchData(param);
+        
+                        if (response.length > 0) {
+                            const respId = response[0].ResponseReferenceRecordId;
+                            query = `SELECT Id, ServiceInformationRequest.RequestPayload, (SELECT Id, MemberPlanId FROM SIRC_ServiceInformationResponses) FROM ServiceInformationResponse WHERE Id = '${respId}'`;
+                            param.query = query;
+        
+                            const crdRequestData = await fetchData(param); //fetching from payer
+        
+                            if (crdRequestData.length > 0) {
+                                const payload = JSON.parse(crdRequestData[0].ServiceInformationRequest.RequestPayload);
+                                const payerPatient = payload.prefetch.patient;
+                                query = `SELECT ParentRecordId, Id FROM Identifier WHERE IdValue = '${payerPatient.identifier[0].value}' AND SourceSystem = '${payerPatient.identifier[0].system}'`;
+                                param.config = 'provider';
+                                param.query = query;
+        
+                                const providerPatientIdentifier = await fetchData(param);
+        
+                                if(providerPatientIdentifier.length > 0) {
+                                    selectedPatient = await fetchPatientDetails(providerPatientIdentifier[0].ParentRecordId);
+                                    const patientName = selectedPatient.Name;
+                                    document.getElementById("typeAheadPatientSelect").value = patientName;
+                                }
+        
+                                if (crdRequestData[0].SIRC_ServiceInformationResponses.records.length > 0) {
+                                    const memberPlanId = crdRequestData[0].SIRC_ServiceInformationResponses.records[0].MemberPlanId;
+        
+                                    if (memberPlanId) {
+                                        query = `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${memberPlanId}'`;
+                                        param.query = query;
+                                        param.config = 'payer';
+                                        const memberPlanDetails = await fetchData(param);
+                                        if (memberPlanDetails.length > 0) {
+                                            query =  `SELECT Id, Name, SourceSystemIdentifier, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND SourceSystemIdentifier = '${memberPlanDetails[0].SourceSystemIdentifier}' AND SourceSystem = '${memberPlanDetails[0].SourceSystem}' `;
+                                            param.query = query;
+                                            param.config = 'provider';
+                                            const providerMemberPlanDetails = await fetchData(param);
+                                            selectedMemberPlan = providerMemberPlanDetails[0];
+                                            document.getElementById("typeAheadMemberPlanSelect").value = selectedMemberPlan.Name;
+                                        }
+                                    }
+                                }
+                            }
+                            await updateCoverageDetails();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        spinner.style.display = 'none';
+                        backdrop.style.display = 'none';
+                    }
+                }
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+            }
+
+            function handleRequestType(formCount) {
+                selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
+                disableForRequestTypeSelection(formCount);
+                if (selectedRequestType === "service") {
+                    document.getElementById(`service-select-${formCount}`).removeAttribute("disabled");
+                }
+                if (selectedRequestType === "medication") {
+                    document.getElementById(`medication-select-${formCount}`).removeAttribute("disabled");
+                }
+                populateRequestForm(formCount, 'selectedRequestType', selectedRequestType);
+            }
+
+            function handleServiceRequest(formCount) {
+                const mraKneeVesselsRight = {
+                    system: "http://www.nlm.nih.gov/research/umls/cpt",
+                    code: "617994",
+                    text: "MRA Knee Vessels Right"
+                };
+                const mraKneeVesselsLeft = {
+                    system: "MCG",
+                    code: "CodeSetMCG",
+                    text: "CodeSetMCG"
+                };
+
+                prepareForMedOrServiceSelection(formCount);
+                const selected = document.getElementById(`service-select-${formCount}`).value;
+                selectedService = selected === "617994" ? mraKneeVesselsRight : mraKneeVesselsLeft;
+                populateRequestForm(formCount, 'selectedService', selectedService);
+            }
+
+            function handleMedicationRequest(formCount) {
+                const amoxicillin = {
+                    system: "http://www.nlm.nih.gov/research/umls/cpt",
+                    code: "617993",
+                    text: "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+                };
+
+                const paracetamol = {
+                    system: "http://www.nlm.nih.gov/research/umls/cpt",
+                    code: "617999",
+                    text: "Paracetmol 620 MG"
+                };
+
+                prepareForMedOrServiceSelection(formCount);
+                const selected = document.getElementById(`medication-select-${formCount}`).value;
+                selectedMedication = selected === "617993" ? amoxicillin : paracetamol;
+                populateRequestForm(formCount, 'selectedMedication', selectedMedication);
+            }
+
+            async function handlePatientSelection(element) {
+                const $suggestionBox = $('#patientSuggestionList');
+                const $element = $(element);
+                const name = $element.text();
+                const data = $element.data();
+
+                $('#typeAheadPatientSelect').val(name);
+                $suggestionBox.empty();
+
+                const patientNode = await fetchPatientDetails(data.Id);
+                selectedPatient = patientNode;
+                await updateCoverageDetails();
+            }
+
+            async function fetchPatientDetails(patientId) {
+                const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers) FROM Account WHERE Id = '${patientId}'`;
+                const param = {
+                    query : query,
+                    isSosl : false,
+                    elementSourceMethod : '/fetchData',
+                }
+                const patientDetails = await fetchData(param);
+                return patientDetails[0];
+             }
+
+            async function handlePayerSelection() {
+                const query = `SELECT IdValue, SourceSystem FROM Identifier WHERE IdValue!='' AND SourceSystem!='' LIMIT 1`;
+                const param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
+                const payerDetails = await fetchData(param);
+                if (payerDetails.length > 0) {
+                    selectedPayer = payerDetails[0];
+                    console.log(selectedPayer);
+                    await updateReferenceDetails();
+                    handleIdentifierCode(1);
+                    handleIdentifierSystem(1);
+                }
+                else {
+                    selectedPayer = {
+                        IdValue: "test",
+                        SourceSystem: "test"
+                    }
+                }
+
+            }
+
+            async function handleMemberPlanSelection(element) {
+                const $suggestionBox = $('#memberPlanSuggestionList');
+                const $element = $(element);
+                const name = $element.text();
+                const data = $element.data();
+
+                $('#typeAheadMemberPlanSelect').val(name);
+                $suggestionBox.empty();
+
+                const query = `SELECT Id, Name, SourceSystemIdentifier, SubscriberId, SourceSystem FROM MemberPlan WHERE Member.IsActive = true AND Member.IsPersonAccount = true AND Id = '${data.Id}'`;
+                const param = { query: query, isSosl: false, elementSourceMethod: '/fetchData' };
+                const memberPlanDetails = await fetchData(param);
+                selectedMemberPlan = memberPlanDetails[0];
+                await updateCoverageDetails();
+            }
+
+            async function updateCoverageDetails() {
+                if (!selectedMemberPlan) return;
+
+                $(`#identifier-system-0`).val(selectedMemberPlan.SourceSystem);
+                coverage.system = selectedMemberPlan.SourceSystem;
+                $(`#identifier-value-0`).val(selectedMemberPlan.SourceSystemIdentifier);
+                coverage.value = selectedMemberPlan.SourceSystemIdentifier;
+
+                if (!selectedPatient) return;
+
+                $(`#subscriber-0`).val(selectedPatient.SourceSystemIdentifier);
+                coverage.subscriber = selectedPatient.SourceSystemIdentifier;
+
+                $(`#beneficiary-0`).val(selectedPatient.SourceSystemIdentifier);
+                coverage.beneficiary = selectedPatient.SourceSystemIdentifier;
+            }
+
+            async function updateReferenceDetails() {
+                if (!selectedPayer) return;
+
+                $(`#identifier-code-referencedRequest-1`).val(selectedPayer.IdValue);
+                $(`#identifier-system-referencedRequest-1`).val(selectedPayer.SourceSystem);
+            }
+
+            function disableForRequestTypeSelection(formCount) {
+                selectedService = null;
+                selectedMedication = null;
+                selectedStartDate = null;
+                selectedEndDate = null;
+                selectedQuantity = 0;
+
+                document.getElementById(`medication-select-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`service-select-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`startDate-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`endDate-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`quantity-${formCount}`).setAttribute("disabled", "disabled");
+                document.getElementById(`submit`).setAttribute("disabled", "disabled");
+            }
+
+            function prepareForMedOrServiceSelection(formCount) {
+                selectedStartDate = null;
+                selectedEndDate = null;
+                selectedQuantity = 0;
+
+                document.getElementById('submit').removeAttribute("disabled");
+                document.getElementById(`startDate-${formCount}`).removeAttribute("disabled");
+                document.getElementById(`endDate-${formCount}`).removeAttribute("disabled");
+                document.getElementById(`quantity-${formCount}`).removeAttribute("disabled");
+            }
+
+            function populateRequestForm(id, key, value) {
+                requestForms[`form-${id}`] ??= {};
+                requestForms[`form-${id}`][key] = value;
+            }
+
+            function populateReferencedForm(id, key, value) {
+                referencedForms[`form-${id}`] ??= {};
+                referencedForms[`form-${id}`][key] = value;
+            }
+
+            function createRetrieveQuestionnaireInput(event) {
+                event.preventDefault();
+
+                fetch('/read-retrieve-questionnaire-sample-structure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let requestStructure = data.data.base;
+                            let medicationRequestBase = data.data.medicationRequest;
+                            let serviceRequestBase = data.data.serviceRequest;
+
+                            Object.keys(requestForms).forEach(key => {
+                                let requestDetails = requestForms[key];
+                                requestStructure.order.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase).resource);
+                            });
+
+                            Object.keys(referencedForms).forEach(key => {
+                                let referencedDetails = referencedForms[key];
+                                requestStructure.referenced.push(getReferencedNode(referencedDetails));
+                            });
+
+                            requestStructure.context = contextId ? contextId : undefined;
+
+                            if (!contextId) {
+                                requestStructure.coverage[0].identifier[0].system = coverage.system;
+                                requestStructure.coverage[0].identifier[0].value = coverage.value;
+                                if (coverage.start) {
+                                    requestStructure.coverage[0].period.start = coverage.start;
+                                }
+                                if (coverage.end) {
+                                    requestStructure.coverage[0].period.end = coverage.end;
+                                }
+                                requestStructure.coverage[0].beneficiary.reference = coverage.beneficiary;
+                                requestStructure.coverage[0].subscriber.reference = coverage.subscriber;
+                            }
+
+                            console.log("RetrieveQuestionnaire Request Input:", requestStructure);
+                            invokeRetrieveQuestionnaire(requestStructure);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            function  invokeRetrieveQuestionnaire(data) {
+                const spinner = document.getElementById('spinner');
+                const backdrop = document.getElementById('backdrop');
+
+                spinner.style.display = 'block';
+                backdrop.style.display = 'block';
+
+                fetch('/invoke-ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        input: data,
+                        ipName: "HlsDTR_RetrieveQuestionnaire",
+                        ipSubtype: "RetrieveQuestionnaire"
+                    })
+                })
+                    .then(response => response.json())
+                    .then(async (data) => {
+                        if (data.success) {
+                            const cleanUpResponse = await cleanQuestionnaireResponse(data.data);
+                            spinner.style.display = 'none';
+                            backdrop.style.display = 'none';
+                            if(cleanUpResponse.success) {
+                                window.location.href = `/dtrResponse?contextId=${contextId}`;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        spinner.style.display = 'none';
+                        backdrop.style.display = 'none';
+                    });
+            }
+
+            async function cleanQuestionnaireResponse(data){
+                if(contextId) {
+                    data.contextId = contextId;
+                }
+                if(data.questionnaireIds) {
+                    data.questionnaireIds.forEach(questionnaire => {
+                        questionnaire.isFilled = false;
+                        questionnaire.response = [];
+                    })     
+                }
+
+                try {
+                    const response = await fetch('/updateQuestionnaireList', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            input: data,
+                        })
+                    });
+            
+                    const result = await response.json();
+                    return { success: true, data: result };
+                } catch (error) {
+                    return { success: false, error: error };
+                }
+            }
+
+            function handleQuantity(formCount) {
+                selectedQuantity = Number(document.getElementById(`quantity-${formCount}`).value);
+                populateRequestForm(formCount, 'selectedQuantity', selectedQuantity);
+            }
+
+            function handleStartDate(formCount) {
+                selectedStartDate = document.getElementById(`startDate-${formCount}`).value;
+                populateRequestForm(formCount, 'selectedStartDate', selectedStartDate);
+            }
+
+            function handleEndDate(formCount) {
+                selectedEndDate = document.getElementById(`endDate-${formCount}`).value;
+                populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
+            }
+
+            function handleReferencedResourceType(formCount) {
+                const resourceTypeElement = document.getElementById(`resource-type-referencedRequest-${formCount}`);
+                const selectedResourceType = resourceTypeElement.value;
+
+                populateReferencedForm(formCount, 'resourceType', selectedResourceType);
+            }
+
+            function handleIdentifierCode(formCount) {
+                const identifierCodeElement = document.getElementById(`identifier-code-referencedRequest-${formCount}`);
+                const identifierCode = identifierCodeElement.value;
+                populateReferencedForm(formCount, 'code', identifierCode);
+                handleReferencedResourceType(formCount);
+            }
+
+            function handleIdentifierSystem(formCount) {
+                const identifierSystemElement = document.getElementById(`identifier-system-referencedRequest-${formCount}`);
+                const identifierSystem = identifierSystemElement.value;
+                populateReferencedForm(formCount, 'system', identifierSystem);
+                handleReferencedResourceType(formCount);
+            }
+
+            function handleCoverageIdentifierSystemChange(formCount) {
+                const identifierSystemElement = document.getElementById(`identifier-system-${formCount}`);
+                const identifierSystemValue = identifierSystemElement.value;
+                coverage.system = identifierSystemValue;
+            }
+
+            function handleCoverageIdentifierValueChange(formCount) {
+                const identifierValueElement = document.getElementById(`identifier-value-${formCount}`);
+                const identifierValue = identifierValueElement.value;
+                coverage.value = identifierValue;
+            }
+
+            function handleCoverageSubscriberReferenceChange(formCount) {
+                const subscriberReferenceElement = document.getElementById(`subscriber-${formCount}`);
+                const subscriberReferenceValue = subscriberReferenceElement.value;
+                coverage.subscriber = subscriberReferenceValue;
+            }
+
+            function handleCoverageBeneficiaryReferenceChange(formCount) {
+                const beneficiaryReferenceElement = document.getElementById(`beneficiary-${formCount}`);
+                const beneficiaryReferenceValue = beneficiaryReferenceElement.value;
+                coverage.beneficiary = beneficiaryReferenceValue;
+            }
+
+            function handleCoveragePeriodStartChange(formCount) {
+                const periodStartElement = document.getElementById(`period-start-${formCount}`);
+                const periodStartValue = periodStartElement.value;
+                coverage.start = periodStartValue;
+            }
+
+            function handleCoveragePeriodEndChange(formCount) {
+                const periodEndElement = document.getElementById(`period-end-${formCount}`);
+                const periodEndValue = periodEndElement.value;
+                coverage.end = periodEndValue;
+            }
+
+            function getReferencedNode(referencedDetail) {
+                return {
+                    resourceType: referencedDetail.resourceType,
+                    identifier: [{
+                        system: referencedDetail.system,
+                        code: referencedDetail.code
+                    }]
+                };
+            }
+
+            function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
+                if (requestDetails.selectedRequestType === "service") {
+                    let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
+                    serviceRequest.resource.id = "service-" + Date.now() + Math.floor(Math.random() * 1000);
+                    serviceRequest.resource.code.text = requestDetails.selectedService.text;
+                    serviceRequest.resource.code.coding[0].system = requestDetails.selectedService.system;
+                    serviceRequest.resource.code.coding[0].code = requestDetails.selectedService.code;
+                    serviceRequest.resource.quantity.value = requestDetails.selectedQuantity;
+                    serviceRequest.resource.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
+                    serviceRequest.resource.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+                    return serviceRequest;
+                } else {
+                    let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
+                    medicationRequest.resource.id = "medication-" + Date.now() + Math.floor(Math.random() * 1000);
+                    medicationRequest.resource.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
+                    medicationRequest.resource.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
+                    medicationRequest.resource.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+                    medicationRequest.resource.effectiveDosePeriod.start = requestDetails.selectedStartDate;
+                    medicationRequest.resource.effectiveDosePeriod.end = requestDetails.selectedEndDate;
+                    return medicationRequest;
+                }
+            }
+        </script>

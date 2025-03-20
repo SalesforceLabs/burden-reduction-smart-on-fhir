@@ -1,0 +1,12 @@
+<%- include('header') -%>
+<% 
+        const loginHeader = "Payer Login";
+        const loginSubHeader = "Log in to the Payer Org";
+        const formId = "payerLogin";
+        const defBaseUrl = "https://umblitz2.test1.my.pc-rnd.salesforce.com/";
+        const defCallBackUrl = "https://burden-reduction-smart-on-fhir-aac1b5fbb555.herokuapp.com/payer/callback";
+        const defClientId ="3MVG9.AgwtoIvERQgAk0juI9LuDHjc49kj0sBeFILVOya4M65Zt3eo1T09iif8uCshyFmJcgagoPFUdUGgL9v";
+    %>
+<%- include('loginBase', { loginHeader : loginHeader, loginSubHeader : loginSubHeader, formId : formId, defBaseUrl : defBaseUrl, defCallBackUrl : defCallBackUrl, defClientId : defClientId }) %>
+
+<%- include('footer') -%>

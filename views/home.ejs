@@ -1,0 +1,61 @@
+<%- include('header') -%>
+<div class="homeClass">
+    <div class="main-heading">
+        Bridge the Gap Between EHR and Payer Systems
+    </div>
+
+    <div class="description">
+        <p>Our portal simplifies healthcare operations by facilitating the exchange of patient data between EHRs and payer systems. This supports critical use cases like Coverage Requirements Discovery (CRD), Documents Templates and Rules (DTR), and Prior Authorization Requests (PAS), as defined by the DaVinci FHIR Burden Reduction Project. By automating these processes, we help reduce administrative burdens, improve efficiency, and enhance patient care.</p>
+    </div>
+
+    <div class="card-container">
+        <!-- Provider Card -->
+        <div class="cardHome">
+            <h3>Providers</h3>
+            <p>Provider Org is the FHIR Client from where we fetch the Clinical Details</p>
+            <button onclick="window.location.href='/provider-login'">Configure Provider</button>
+            <div class="subtext">
+                <% if (providerConfiguredAlready) { %>
+                    <div class="available">
+                        <span class="icon">✔️</span> provider configured successfully
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Payer Card -->
+        <div class="cardHome">
+            <h3>Payers</h3>
+            <p>Payer Org is the FHIR Server for Service & Medication Requests</p>
+            <button onclick="window.location.href='/payer-login'">Configure Payer</button>
+            <div class="subtext">
+                <% if (payerConfiguredAlready) { %>
+                    <div class="available">
+                        <span class="icon">✔️</span> payer configured successfully
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- UM Workspace -->
+        <div class="cardHome">
+            <h3>UM Workspace</h3>
+            <p>Workspace to perform various Utilization Management Operations</p>
+            <button onclick="window.location.href='/UM-Workspace'" <% if (!payerConfiguredAlready && !providerConfiguredAlready) { %> disabled <% } %>>Enter Workspace</button>
+            <div class="subtext">
+                <% if (!payerConfiguredAlready) { %>
+                    <div class="notAvailable">
+                        <span class="icon">ⓘ</span> payer not configured
+                    </div>
+                <% } %>
+                <% if (!providerConfiguredAlready) { %>
+                    <div class="notAvailable">
+                        <span class="icon">ⓘ</span> provider not configured
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('footer') -%>

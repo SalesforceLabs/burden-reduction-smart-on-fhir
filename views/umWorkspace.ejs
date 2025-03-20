@@ -1,0 +1,289 @@
+<%- include('header') -%>
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <h1 class="heading-style">Select a Utilization Management Operation</h1>
+        <hr>
+        <br>
+        
+        <form>
+            <div class="row">
+                <div class="col">
+                    
+                </div>
+              <div class="col">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text bg-info text-white" for="inputGroupSelect01">Select Service</label>
+                    </div>
+                    <select class="form-control" id="processTypeDropdown" onchange="loadProcessType(this.value)">
+                        <option selected>Choose...</option>
+                        <option value="crd" title="Quickly determine coverage eligibility based on patient information and payer policies.">Coverage Requirement Discovery</option>
+                        <option value="dtr" title="Generate standardized documents and rules for claims, prior authorizations, and other healthcare processes.">Document Template & Rules</option>
+                        <option value="pas" title="Streamline the prior authorization process, reducing turnaround times and administrative costs.">Prior Authorization & Support</option>
+                    </select>
+                  </div>
+               </div>
+               <div class="col"></div>
+            </div>
+        </form>
+        <br>
+        <div id="tableContainer" style="display: none;"></div>
+        <div id="processTypeContent" class="json-container"></div>
+        <div id="spinner" class="spinner" style="display: none;"></div>
+        <div id="backdrop" class="backdrop" style="display: none;"></div>
+    </div>
+</div>
+<%- include('footer') -%>
+
+<script>
+    const contextId = '<%= contextId %>';
+    const selectedProcessType = '<%= selectedProcessType %>';
+    const source = '<%= source %>';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectElement = document.getElementById("processTypeDropdown");
+        if (selectedProcessType && selectElement) {
+        selectElement.value = selectedProcessType;
+        selectElement.onchange();
+        }
+      });
+
+    function loadProcessType(passedValue) {
+        const processType = document.getElementById('processTypeDropdown').value;
+        const processTypeContent = document.getElementById('processTypeContent');
+        const responseContainer = document.getElementById('responseContainer');
+        const tableContainer = document.getElementById('tableContainer');
+        
+        /*processTypeContent.classList.remove('active');
+        processTypeContent.innerHTML = '';*/
+
+        if (processType === 'crd') {
+            callDiscoveryApi({
+                processType:processType
+              });
+
+        } else if (processType === 'dtr') {
+            callDiscoveryApi({
+                processType:processType
+              });
+        }
+        else if (processType === 'pas') {
+            callDiscoveryApi({
+                processType:processType
+              });
+        }
+    }
+</script>
+
+<script>
+    function validateAndSubmitJson() {
+        const jsonInput = document.getElementById('jsonInput').value;
+        const validationMessage = document.getElementById('validationMessage');
+        const processType = document.getElementById('processTypeDropdown').value;
+
+        try {
+            const parsedJson = JSON.parse(jsonInput);
+            validationMessage.innerHTML = '';
+            callApi({
+               input:parsedJson,
+               processType:processType
+           });
+        } catch (error) {
+            validationMessage.innerHTML = 'Invalid JSON. Please correct it.';
+        }
+    }
+
+    function callApi(data) {
+        // Example API call using fetch or axios
+        console.log('API called with data:', data);
+        if (data.processType == 'crd') {
+           invokeCrdApi(data.input);
+        }
+    }
+    function callDiscoveryApi(data){
+        console.log('Discovery called with data:', data);
+        invokeDiscoveryApi(data.processType);
+     }
+
+     function invokeCrdApi(data){
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/call-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            if (data.success) {
+                //responseContainer.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                // Hide the spinner after receiving the response
+                console.log(data.data);
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
+
+     function invokeDiscoveryApi(data){
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/call-disc-api', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                processType : data
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseContainer = document.getElementById('responseContainer');
+            const tableContainer = document.getElementById('tableContainer');
+            if (data.success) {
+
+                spinner.style.display = 'none';
+                backdrop.style.display = 'none';
+                console.log(data.data);
+                let columns = ['Type', 'SubType'];
+                if(document.getElementById('processTypeDropdown').value=='crd'){
+                    columns = ['CDS Hook', 'Type', 'SubType'];
+                }
+                const tableData = prepareDataForTheTable(data.data);
+                const query = `columns=${encodeURIComponent(JSON.stringify(columns))}&rows=${encodeURIComponent(JSON.stringify(tableData))}`;
+
+                fetch(`/getTableData?${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('tableContainer').innerHTML = data.tableHtml;
+                    document.getElementById('tableContainer').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching table data:', error));
+
+            } else {
+                responseContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+    }
+
+    function prepareDataForTheTable(data) {
+        output = [];
+        data.records.forEach((item) => {
+            if(document.getElementById('processTypeDropdown').value == 'crd' && item.SubType=='ProcessOrderEcho'){
+                output.push({ Type: item.Type, SubType: item.SubType, 'CDS Hook': 'order-select' });
+            } 
+            else {
+                output.push({ Type: item.Type, SubType: item.SubType });
+            }
+        });
+
+        console.log(output);
+        return output;
+    }
+
+    function submitRowData(rowIndex) {
+        const form = document.getElementById('form-' + rowIndex);
+        var querySuffix = '';
+
+        const formData = new FormData(form);
+        
+        // Convert FormData to a plain object
+        const rowData = {};
+        formData.forEach((value, key) => {
+            rowData[key] = value;
+        });
+
+        if(contextId) {
+            querySuffix = `?contextId=${contextId}`;
+        }
+
+        if(source){
+            if(querySuffix.length > 0){
+                querySuffix += `&source=${source}`;
+            } else {
+                querySuffix += `?source=${source}`;
+            }
+        }
+
+        // Log the rowData to see the values
+        console.log('Row Data:', rowData);
+        if(rowData.Type == "HlsClinicalDecisionSupport" && rowData.SubType == "ProcessOrderEcho"){
+            window.location.href = '/order-select-form'+querySuffix;
+        }else if(rowData.Type == "HlsDTR" && rowData.SubType == "RetrieveQuestionnaire"){
+            window.location.href = '/retrieve-questionnaire-form'+querySuffix;
+        }else if(rowData.Type == "HlsPas" && rowData.SubType == "TransformCareServices" ) {
+            window.location.href = '/pasRequestForm'+querySuffix;
+        } else{
+            fetch('/useService', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(rowData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success){
+                    const processType = document.getElementById('processTypeDropdown').value;
+                    const processTypeContent = document.getElementById('processTypeContent');
+    
+                    if(processType == 'crd'){
+                        processTypeContent.classList.add('active');
+                        processTypeContent.innerHTML = `<%- include('jsonInputContainer', { type: 'Coverage Requirement Dicovery', serviceName: '${rowData.Type}_${rowData.SubType}'}) %>`;
+    
+                        document.getElementById('fetchFieldValueButton').addEventListener('click', async function() {
+                            try {
+                                var spinner = document.getElementById('spinner');
+                                var backdrop = document.getElementById('backdrop');
+                                spinner.style.display = 'block';
+                                backdrop.style.display = 'block';
+                                const response = await fetch('/fetch-field-value');
+                                const fieldValue = await response.text();
+                                document.getElementById('jsonInput').value = fieldValue;
+                            } catch (error) {
+                                console.error('Error fetching the field value:', error);
+                                alert('Failed to fetch the field value.');
+                            }finally{
+                                spinner.style.display = 'none';
+                                backdrop.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));    
+        }        
+    }
+
+ </script>

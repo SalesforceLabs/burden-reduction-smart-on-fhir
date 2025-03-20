@@ -1,0 +1,202 @@
+{
+    "hookInstance": "zzv22s7fa2d9-dcdce-44ad-ba6d-35e3b43343",
+    "hook": "order-echo",
+    "id": "hook002345",
+    "fhirAuthorization": {
+      "access_token": "some-opaque-fhir-access-token",
+      "token_type": "Bearer",
+      "expires_in": 300,
+      "scope": "user/Patient.read user/Observation.read",
+      "subject": "cds-service4"
+    },
+    "fhirServer": "http://hooks.smarthealthit.org:9080",
+    "context": {
+      "userId": "PractitionerRole/123",
+      "patientId": "1288992",
+      "encounterId": "89284",
+      "resources": {
+        "resourceType": "Bundle",
+        "crdCoverage": {
+          "beneficiary": "sdsdfcsd",
+          "payor": "sxcsdc"
+        },
+        "type": "collection",
+        "entry": [
+          {
+            "resourceType": "MedicationRequest",
+            "id": "smart-MedicationRequest-103",
+            "entryInfo": {
+              "meta": {
+                "lastUpdated": "2018-04-30T13:25:40.845-04:00"
+              },
+              "text": {
+                "status": "generated",
+                "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension (rxnorm: 617993)</div>"
+              },
+              "status": "draft",
+              "intent": "order",
+              "medicationCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://www.nlm.nih.gov/research/umls/cpt",
+                    "code": "617993",
+                    "display": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+                  }
+                ],
+                "text": "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+              },
+              "subject": {
+                "reference": "Patient/1288992"
+              },
+              "effectiveDosePeriod": {
+                "start": "2024-07-06",
+                "end": "2024-07-10"
+              },
+              "dispenseRequest": {
+                "quantity": {
+                  "value": 6,
+                  "unit": "TAB",
+                  "system": "http://terminology.hl7.org/CodeSystem/v3-orderableDrugForm",
+                  "code": "TAB"
+                }
+              }
+            }
+          },
+          {
+            "resourceType": "ServiceRequest",
+            "id": "MRI-59879846",
+            "entryInfo": {
+              "status": "draft",
+              "intent": "plan",
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://www.nlm.nih.gov/research/umls/cpt",
+                    "code": "617994"
+                  }
+                ],
+                "text": "MRA Knee Vessels Right"
+              },
+              "subject": {
+                "reference": "Patient/MRI-59879846"
+              },
+              "reasonCode": [
+                {
+                  "coding": [
+                    {
+                      "system": "http://hl7.org/fhir/sid/icd-10",
+                      "code": "S83.511",
+                      "display": "Sprain of anterior cruciate ligament of right knee"
+                    }
+                  ]
+                }
+              ],
+              "quantity": {
+                "value": 1
+              },
+              "occurrence": {
+                "occurrenceDateTime": "2024-07-15",
+                "occurrencePeriod": {
+                  "start": "2024-07-15",
+                  "end": "2024-07-15"
+                },
+                "occurrenceTiming": "<>"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "prefetch": {
+      "patient": {
+        "resourceType": "Patient",
+        "gender": "Male",
+        "birthDate": "1985-12-23",
+        "subscriberId": "1288992",
+        "active": true,
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+            "value": "738472983"
+          },
+          {
+            "use": "usual",
+            "system": "urn:oid:2.16.840.1.113883.2.4.6.3"
+          }
+        ],
+        "name": [
+          {
+            "use": "usual",
+            "family": "van de Heuvel",
+            "given": ["Pieter"],
+            "suffix": ["MSc"]
+          }
+        ]
+      },
+      "practitioner": {
+        "resourceType": "practitioner",
+        "gender": "Male",
+        "birthDate": "1988-1-23",
+        "id": "1288992",
+        "active": true,
+        "identifier": [
+          {
+            "use": "npi",
+            "system": "urn:oid:2.16.528.1.1007.3.1",
+            "value": "938273695"
+          },
+          {
+            "use": "usual",
+            "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+            "value": "129IDH4OP733"
+          }
+        ],
+        "name": [
+          {
+            "use": "usual",
+            "family": "van de Heuvel",
+            "given": ["Practitioner"],
+            "suffix": ["MSc"]
+          }
+        ],
+        "additionalInfo": {
+          "telecom": [
+            {
+              "system": "phone",
+              "value": "0648352638",
+              "use": "mobile"
+            },
+            {
+              "system": "email",
+              "value": "p.heuvel@gmail.com",
+              "use": "home"
+            }
+          ],
+          "address": [
+            {
+              "use": "home",
+              "line": ["Van Egmondkade 23"],
+              "city": "Amsterdam",
+              "postalCode": "1024 RJ",
+              "country": "NLD"
+            }
+          ]
+        }
+      },
+      "location": {
+        "resourceType": "Location",
+        "status": "active",
+        "name": "Washington, DC metro area",
+        "identifier": [
+          {
+            "value": "B1-S.F2"
+          },
+          {
+            "value": "B1-S.F2.1.00"
+          }
+        ]
+      }
+    }
+  }
+  

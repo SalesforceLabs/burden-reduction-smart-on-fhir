@@ -1,0 +1,68 @@
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-25 border py-5">
+        <div class="title pb-2">
+            <h2 class="heading-style"><%= loginHeader %></h2>
+            <span><%= loginSubHeader %></span>
+            <hr>
+        </div>
+        <form id="<%= formId %>"  class="pt-2">
+            <div class="form-group">
+                <small class="form-text text-muted text-left">Enter Base URL</small>
+                <input type="url" value="<%= defBaseUrl %>" class="form-control" placeholder="base url" id="baseUrl" name="baseUrl" required>
+            </div>
+            <div class="form-group pt-3">
+                <small class="form-text text-muted text-left">Enter Client Id</small>
+                <input type="password" value="<%= defClientId %>" class="form-control" placeholder="client id" id="clientId" name="clientId" required>
+            </div>
+            <div class="form-group pt-3">
+                <small class="form-text text-muted text-left">Enter Callback URL</small>
+                <input type="url" value="<%= defCallBackUrl %>" class="form-control" placeholder="callback url" id="callbackUrl" name="callbackUrl" required>
+            </div>
+            <div class="pt-3">
+                <button type="submit" class="btn btn-success rounded-pill">Get Access Token</button>
+            </div>
+        </form>
+    </div>
+ </div>
+
+ <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+ <script>
+    $(document).ready(function() {
+        var formId = '<%= formId %>';
+        $(`#${formId}`).on('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            var baseUrl = $('#baseUrl').val();
+            var clientId = $('#clientId').val(); 
+            var callbackUrl = $('#callbackUrl').val();
+            var scope = 'api full';
+            var oauthUrl = `${baseUrl}/services/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`;
+
+            fetch('/updateConfig', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body : JSON.stringify({
+                    "userType": formId,
+                    "baseUrl": baseUrl,
+                    "clientId": clientId,
+                    "callbackUrl":callbackUrl
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Payer Configs Updtaed");
+                    window.location.href = oauthUrl;
+                } else {
+                    console.log("Payer Configs Not Updtaed");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>

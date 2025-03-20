@@ -1,0 +1,54 @@
+List<ServiceInfoRequestDetail> ServiceInfoRequestDetail_x = [ SELECT ID FROM ServiceInfoRequestDetail ];
+List<ServiceInfoRespResourceUrl> ServiceInfoRespResourceUrl_x = [ SELECT ID FROM ServiceInfoRespResourceUrl ];
+List<ServiceInformationResponse> ServiceInformationResponse_x = [ SELECT ID FROM ServiceInformationResponse ];
+List<ServiceInfoResponseAction> ServiceInfoResponseAction_x = [ SELECT ID FROM ServiceInfoResponseAction ];
+List<ServiceInfoResponseCoverage> ServiceInfoResponseCoverage_x = [ SELECT ID FROM ServiceInfoResponseCoverage ];
+// List<ServiceInformationResponseResources> ServiceInformationResponseResources_x = [ SELECT ID FROM ServiceInformationResponseResources ];
+// List<ServiceInformationResponseSuggestions> ServiceInformationResponseSuggestions_x = [ SELECT ID FROM ServiceInformationResponseSuggestions ];
+List<ServiceInfoRespSuggestion> ServiceInfoRespSuggestion_x = [ SELECT ID FROM ServiceInfoRespSuggestion ];
+List<ServiceInfoRespOvrideOpt> ServiceInfoRespOvrideOpt_x = [ SELECT ID FROM ServiceInfoRespOvrideOpt ];
+List<ServiceInformationRequest> ServiceInformationRequest_x = [ SELECT ID FROM ServiceInformationRequest ];
+List<CoverageBenefitItemLimit> CoverageBenefitItemLimit_x = [ SELECT ID FROM CoverageBenefitItemLimit ];
+List<CoverageBenefitItem> CoverageBenefitItem_x = [ SELECT ID FROM CoverageBenefitItem ];
+List<CoverageBenefit> CoverageBenefit_x = [ SELECT ID FROM CoverageBenefit ];
+List<CodeSetBundle> CodeSetBundle_x = [ SELECT ID FROM CodeSetBundle ];
+List<CodeSet> CodeSet_x = [ SELECT ID FROM CodeSet ];
+List<Identifier> Identifier_x = [ SELECT ID FROM Identifier ];
+List<HealthcareFacility> HealthcareFacility_x = [ SELECT ID FROM HealthcareFacility ];
+List<HealthcareProvider> HealthcareProvider_x = [ SELECT ID FROM HealthcareProvider ];
+List<HealthcareFacilityNetwork> HealthcareFacilityNetwork_x = [ SELECT ID FROM HealthcareFacilityNetwork ];
+List<HealthcarePayerNetwork> HealthcarePayerNetwork_x = [ SELECT ID FROM HealthcarePayerNetwork ];
+List<MemberPlan> MemberPlan_x = [ SELECT ID FROM MemberPlan ];
+List<PlanBenefitItem> PlanBenefitItem_x = [SELECT ID FROM PlanBenefitItem];
+List<PlanBenefit> PlanBenefit_x = [SELECT ID FROM PlanBenefit];
+List<PurchaserPlan> PurchaserPlan_x = [ SELECT ID FROM PurchaserPlan ];
+
+List<Account> Account_x = [ SELECT ID FROM Account WHERE NAME != 'Global Media' AND NAME != 'Acme' AND NAME != 'salesforce.com' AND NAME != 'nadp' AND name != 'Jdoe' AND name != 'bsom'];
+delete ServiceInfoRequestDetail_x;
+delete ServiceInfoRespResourceUrl_x;
+
+delete ServiceInfoResponseAction_x;
+delete ServiceInfoResponseCoverage_x;
+// delete ServiceInformationResponseResources_x;
+// delete ServiceInformationResponseSuggestions_x;
+
+delete ServiceInfoRespSuggestion_x;
+delete ServiceInfoRespOvrideOpt_x;
+delete ServiceInformationResponse_x;
+delete ServiceInformationRequest_x;
+delete CoverageBenefitItemLimit_x;
+delete CoverageBenefitItem_x;
+delete CoverageBenefit_x;
+delete CodeSetBundle_x;
+delete Identifier_x;
+delete CodeSet_x;
+
+delete HealthcareFacility_x;
+delete HealthcareProvider_x;
+delete HealthcareFacilityNetwork_x;
+delete HealthcarePayerNetwork_x;
+delete MemberPlan_x;
+delete PlanBenefitItem_x;
+delete PlanBenefit_x;
+delete PurchaserPlan_x;
+delete Account_x;
