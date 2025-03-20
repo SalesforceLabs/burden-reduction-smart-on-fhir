@@ -1,0 +1,38 @@
+{
+  "name": "sf-fhir-app",
+  "version": "1.0.0",
+  "description": "A smart on fhir app for HC Payers to test crd-dtr-pas functionality in their org by acting as a middleware between providers and HC Payer",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "debug": "nodemon --inspect app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.soma.salesforce.com/Health-Cloud/burden-reduction-smart-on-fhir"
+  },
+  "keywords": [
+    "crd",
+    "dtr",
+    "pas",
+    "burden",
+    "reduction",
+    "smartonfhir"
+  ],
+  "author": "gnaik",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.5",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "nodemon": "^3.1.4",
+    "uuid": "^10.0.0"
+  },
+  "nodemonConfig": {
+    "ignore": ["config/*"]
+  }
+}

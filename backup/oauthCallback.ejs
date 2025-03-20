@@ -1,0 +1,23 @@
+<%- include('header') -%>
+
+<div class="text-center center-div">
+    <div class="container w-50 border py-5">
+        <h3>OAuth Authentication Successful</h3>
+        <p>Your Access Token is:</p>
+        <textarea readonly class="form-control" rows="5"><%= token %></textarea>
+        <button id="saveTokenButton" class="btn btn-primary mt-3">Save Access Token</button>
+        <!-- <button id="callIpBtn" class="btn btn-primary mt-3">Call Integration Procedure</button> -->
+        <div id="spinner" class="spinner" style="display: none;"></div>
+        <div id="backdrop" class="backdrop" style="display: none;"></div>
+        <div id="responseContainer" class="mt-4"></div>
+    </div>
+</div>
+
+<%- include('footer') -%>
+
+<script>
+    document.getElementById('saveTokenButton').addEventListener('click', function() {
+        window.location.href = "/";
+    });
+
+</script>

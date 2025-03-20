@@ -1,0 +1,5 @@
+patient_name, Medicatation/Service,  Name,                  Provider,               Docs_Needed,   Prioir_Auth_Approval
+Sophia,       Service,               MRA Knee Vessels Right, William Practitioner,  clinical,      "No Prior Authorization"
+Sophia,       Medication,            Paracetamol,            William Practitioner,  Admin,         "Prior Authorization Needed"
+Sophia,       Medicaiton,            Amoxicillin,            William Practitioner,  NA,            "Authorization Satisfied"
+Sophia,       Service,               MRA Knee Vessel Left,   William Practitioner,  admin,         "Performer Prior Authorization"

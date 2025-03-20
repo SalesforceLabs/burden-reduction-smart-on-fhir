@@ -1,0 +1,42 @@
+{
+  "resourceType": "ServiceRequest",
+  "id": "MRI-59879846",
+  "entryInfo": {
+    "status": "draft",
+    "intent": "plan",
+    "code": {
+      "coding": [
+        {
+          "system": "http://www.nlm.nih.gov/research/umls/cpt",
+          "code": "617994"
+        }
+      ],
+      "text": "MRA Knee Vessels Right"
+    },
+    "subject": {
+      "reference": "Patient/MRI-59879846"
+    },
+    "reasonCode": [
+      {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "S83.511",
+            "display": "Sprain of anterior cruciate ligament of right knee"
+          }
+        ]
+      }
+    ],
+    "quantity": {
+      "value": 1
+    },
+    "occurrence": {
+      "occurrenceDateTime": "2024-07-15",
+      "occurrencePeriod": {
+        "start": "2024-07-15",
+        "end": "2024-07-15"
+      },
+      "occurrenceTiming": "<>"
+    }
+  }
+}

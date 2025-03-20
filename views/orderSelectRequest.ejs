@@ -1,0 +1,503 @@
+<%- include('header', {title: "Medication/Service Request"}) -%>
+
+<div class="center-div">
+    <div class="container w-80 border py-3">
+        <div class="text-center title pb-2">
+            <h2 class="heading-style">Medication/Service Request</h2>
+            <span>Select a Medication/Service to verify its coverage.</span>
+        </div>
+        <form onsubmit="return createOrderSelectInputRefined(event);">
+            <div class="form-group">
+                <h3 class="font-weight-bold">Patient Details</h3>
+            </div>
+            <div class="form-group col-md-6">
+                <%- include('typeAhead',{
+                    elementId : 'typeAhead1',
+                    elementLabel : 'Select Patient',
+                    elementSourceMethod : '/fetchData',
+                    entityName : 'Account',
+                    fields: ['Id','Name'],
+                    listId: 'list1',
+                    onClickFunction: 'handlePatientSelect',
+                    condition: 'WHERE IsPersonAccount=true'
+                }) -%>
+            </div>
+        
+            <hr/>
+            <div class="form-group pb-2">
+                <h3>Medication/Service Request</h3>
+            </div>
+
+            <div id="dynamicRequestForms">
+            </div>
+
+            <div class="row pb-2">
+                <div class="col">
+                    <div class="btn-right-align">
+                        <button id="addForm" class="btn btn-primary btn-sm" type="button" title="Add a new request">
+                            <i class="fas fa-plus btn-icon"></i>
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>  
+        
+            <hr>
+            <div class="form-group">
+                <h3>Practitioner and Location Details</h3>
+            </div>
+            <div class="row pb-4">
+                <div class="col">
+                    <%- include('typeAhead',{
+                        elementId : 'typeAhead2',
+                        elementLabel : 'Select Practitioner',
+                        elementSourceMethod : '/fetchData',
+                        entityName : 'Account',
+                        fields: ['Id','Name'],
+                        listId: 'list2',
+                        onClickFunction: 'handlePractitionerSelect',
+                        condition: 'WHERE IsPersonAccount=true'
+                    }) -%>
+                </div>
+                <div class="form-group col-md-6">
+                    <%- include('typeAhead',{
+                        elementId : 'typeAhead3',
+                        elementLabel : 'Select Location',
+                        elementSourceMethod : '/fetchData',
+                        entityName : 'HealthcareFacility',
+                        fields: ['Id','Name'],
+                        listId: 'list3',
+                        onClickFunction: 'handleLocationSelect',
+                        condition: ''
+                    }) -%>
+                </div>
+            </div>
+            <div class="text-center">
+                <input class="btn btn-primary" type="submit" id="submit" value="Submit" disabled="disabled">
+            </div>
+            </form>
+        
+        <div id="spinner" class="spinner" style="display: none;"></div>
+        <div id="backdrop" class="backdrop" style="display: none;"></div> 
+    </div>
+</div>
+<%- include('footer') -%>
+<script>
+    let selectedpatient, selectedCoverage, selectedRequestType, selectedService, selectedMedication, selectedQuantity, selectedStartDate, selectedEndDate, selectedPractitioner, selectedLocation;
+    let requestForms = {};
+    document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('endDate').valueAsDate = new Date();
+    document.getElementById('quantity').value = 0;
+
+    function handleRequestType(formCount) {
+        selectedRequestType = document.getElementById(`request-type-select-${formCount}`).value;
+        disableForRequestTypeSelection(formCount);
+        if(selectedRequestType == "service"){
+            document.getElementById(`service-select-${formCount}`).removeAttribute("disabled");
+        }
+        if(selectedRequestType == "medication"){
+            document.getElementById(`medication-select-${formCount}`).removeAttribute("disabled");            
+        }
+        populateRequestForm(formCount, 'selectedRequestType', selectedRequestType);
+    }
+
+    function handleServiceRequest(formCount) {
+        const mraKneeVesselsRight = {
+            system: "http://www.nlm.nih.gov/research/umls/cpt",
+            code: "617994",
+            text: "MRA Knee Vessels Right"
+        };
+        const mraKneeVesselsLeft = {
+            system: "http://www.nlm.nih.gov/research/umls/cpt",
+            code: "617995",
+            text: "MRA Knee Vessels Left"
+        };
+        
+        prepareForMedOrServiceSelection(formCount);
+        const selected = document.getElementById(`service-select-${formCount}`).value;
+        if(selected == "617994") {
+            selectedService = mraKneeVesselsRight;
+        }else {
+            selectedService = mraKneeVesselsLeft;
+        }
+        populateRequestForm(formCount, 'selectedService', selectedService);
+    }
+
+    // TODO: This should be coming from the unique codeset avaibale int he org.
+    function handleMedicationRequest(formCount) {
+        const amoxicillin = {
+            system: "http://www.nlm.nih.gov/research/umls/cpt",
+            code: "617993",
+            text: "Amoxicillin 120 MG/ML / clavulanate potassium 8.58 MG/ML Oral Suspension"
+        };
+
+        const paracetmol = {
+            system: "http://www.nlm.nih.gov/research/umls/cpt",
+            code: "617999",
+            text: "Paracetmol 620 MG"
+        };
+        
+        prepareForMedOrServiceSelection(formCount);
+        const selected = document.getElementById(`medication-select-${formCount}`).value;
+        if(selected == "617993"){
+            selectedMedication = amoxicillin;
+        }else {
+            selectedMedication = paracetmol;
+        }
+        populateRequestForm(formCount, 'selectedMedication', selectedMedication);
+    }
+
+    function handleQuantity(formCount) {
+        selectedQuantity = Number(document.getElementById(`quantity-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedQuantity', selectedQuantity);
+    }
+
+    function handleStartDate(formCount) {
+        selectedStartDate = (document.getElementById(`startDate-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedStartDate', selectedStartDate);
+    }
+
+    function handleEndDate(formCount) {
+        selectedEndDate = (document.getElementById(`endDate-${formCount}`).value);
+        populateRequestForm(formCount, 'selectedEndDate', selectedEndDate);
+    }
+    
+    function createOrderSelectInputRefined() {
+        event.preventDefault();        
+
+        //fetch base structre
+        fetch('/read-order-select-request-base-structure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let requestStructure = data.data.base;
+                let medicationRequestBase = data.data.medicationRequest;
+                let serviceRequestBase = data.data.serviceRequest; 
+                requestStructure.hookInstance = 'from-bridge-application-'+Date.now();
+
+                Object.keys(requestForms).forEach(key => {
+                    let requestDetails = requestForms[key];
+                    requestStructure.context.draftOrders.entry.push(getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase));
+                });
+        
+                requestStructure.prefetch.patient = selectedpatient;
+                requestStructure.prefetch.coverage = selectedCoverage;
+                requestStructure.prefetch.practitioner = selectedPractitioner;
+                requestStructure.prefetch.location = selectedLocation;
+        
+                invokeCrdApi(requestStructure);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function getRequestNode(requestDetails, serviceRequestBase, medicationRequestBase) {
+        if(requestDetails.selectedRequestType  == "service"){
+            let serviceRequest = JSON.parse(JSON.stringify(serviceRequestBase));
+            serviceRequest.resource.id = "service-"+Date.now()+ Math.floor(Math.random() * 1000);
+            serviceRequest.resource.code.text = requestDetails.selectedService.text;
+            serviceRequest.resource.code.coding[0].system = requestDetails.selectedService.system;
+            serviceRequest.resource.code.coding[0].code = requestDetails.selectedService.code;
+            serviceRequest.resource.quantity.value = requestDetails.selectedQuantity;
+            serviceRequest.resource.occurrence.occurrencePeriod.start = requestDetails.selectedStartDate;
+            serviceRequest.resource.occurrence.occurrencePeriod.end = requestDetails.selectedEndDate;
+            serviceRequest.resource.occurrence.occurrenceDateTime = requestDetails.selectedStartDate;
+            return serviceRequest;
+        } else {
+
+            let medicationRequest = JSON.parse(JSON.stringify(medicationRequestBase));
+            medicationRequest.resource.id = "medication-"+Date.now()+ Math.floor(Math.random() * 1000);
+            medicationRequest.resource.medicationCodeableConcept.text = requestDetails.selectedMedication.text;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].system = requestDetails.selectedMedication.system;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].code = requestDetails.selectedMedication.code;
+            medicationRequest.resource.medicationCodeableConcept.coding[0].display = requestDetails.selectedMedication.text;
+            medicationRequest.resource.dispenseRequest.quantity.value = requestDetails.selectedQuantity;
+            medicationRequest.resource.dispenseRequest.quantity.validityPeriod.start = requestDetails.selectedStartDate;
+            medicationRequest.resource.dispenseRequest.quantity.validityPeriod.end = requestDetails.selectedEndDate;
+            medicationRequest.resource.effectiveDosePeriod.start = requestDetails.selectedStartDate;
+            medicationRequest.resource.effectiveDosePeriod.end = requestDetails.selectedEndDate;
+            return medicationRequest;
+        }
+    }
+    
+    function disableForRequestTypeSelection(formCount){
+        selectedService = null;
+        selectedMedication = null;
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = 0;
+
+        document.getElementById(`medication-select-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`service-select-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`startDate-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`endDate-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`quantity-${formCount}`).setAttribute("disabled", "disabled");
+        document.getElementById(`submit`).setAttribute("disabled", "disabled");
+        
+    }
+
+    function prepareForMedOrServiceSelection(formCount){
+        selectedStartDate = null;
+        selectedEndDate = null;
+        selectedQuantity = 0;
+        document.getElementById('submit').removeAttribute("disabled");
+        document.getElementById(`startDate-${formCount}`).removeAttribute("disabled")
+        document.getElementById(`endDate-${formCount}`).removeAttribute("disabled")
+        document.getElementById(`quantity-${formCount}`).removeAttribute("disabled")
+    }
+
+    function invokeCrdApi(data){
+        var spinner = document.getElementById('spinner');
+        var backdrop = document.getElementById('backdrop');
+
+        // Show the spinner
+        spinner.style.display = 'block';
+        backdrop.style.display = 'block';
+
+        fetch('/invoke-ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({
+                input : data,
+                ipName : "HlsClinicalDecisionSupport_ProcessOrderEcho",
+                ipSubtype: "ProcessOrderEcho"
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+            if (data.success) {
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data.data);
+            } else {
+                window.location.href = "/payer/crdResponse?data="+JSON.stringify(data);
+            }
+        })
+        .catch(error => {
+            console.log('Error:', error);
+      
+            // Hide the spinner after receiving the response
+            spinner.style.display = 'none';
+            backdrop.style.display = 'none';
+        });
+     }
+
+     async function handlePatientSelect(element) {
+        const $suggestionBox = $('#list1');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead1').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, SourceSystemIdentifier, (SELECT IdValue, SourceSystem, IdUsageType, IdTypeId FROM Identifiers) FROM Account WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const patientDetails = await fetchData(param);
+        const patientNode = createPatientNode(patientDetails[0]);
+        const coverageNode = await createCoverageNode(patientDetails[0]);
+        selectedpatient = patientNode;
+        selectedCoverage = coverageNode;
+     }
+
+     async function handlePractitionerSelect(element) {
+        const $suggestionBox = $('#list2');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead2').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, PersonGender, PersonBirthdate, IsActive, FirstName, LastName, (SELECT Id, SourceSystem, (SELECT IdValue, SourceSystem, IdUsageType, IdTypeId FROM Identifiers) FROM HealthcareProviders) FROM Account WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const practitionerDetails = await fetchData(param);
+        console.log(practitionerDetails);
+        const practitionerNode = createPractitionerDetailsNode(practitionerDetails[0]);
+        selectedPractitioner = practitionerNode;
+     }
+
+     async function handleLocationSelect(element) {
+        const $suggestionBox = $('#list3');
+        const $element = $(element);
+        const name = $element.text();
+        const data = $element.data();
+        $('#typeAhead3').val(name);
+        $suggestionBox.empty();
+
+        const query = `SELECT Id, Name, (SELECT IdValue, SourceSystem, IdUsageType FROM Identifiers), Location.Id, Location.Name FROM HealthcareFacility WHERE Id = '${data.Id}'`;
+        const param = {
+            query : query,
+            isSosl : false,
+            elementSourceMethod : '/fetchData',
+        }
+        const locationDetails = await fetchData(param);
+        const locationNode = createLocationDetailsNode(locationDetails[0]);
+        selectedLocation = locationNode;
+     }
+
+     function createPatientNode(patient) {
+        var patientNode = {
+                            "resourceType": "patient",
+                            "gender": patient?.PersonGender,
+                            "birthDate": patient?.PersonBirthdate,
+                            "subscriberId": patient?.SourceSystemIdentifier,
+                            "active": patient?.IsActive
+                        }
+        patientNode.identifier = createIdentifiers(patient);
+        patientNode.name = createName(patient);
+
+        return patientNode;
+     }
+
+     async function createCoverageNode(patient) {
+        var coverageNode = {
+            "resourceType": "Coverage"
+        }
+
+        if (!patient || !patient.Identifiers || !patient.Identifiers.records || patient.Identifiers.records.length === 0) {
+            coverageNode.identifier = [];
+        } else {
+            let coverageIdenitifer = [];
+            codesetIds = []
+            patient.Identifiers.records.forEach(identifier => {
+                if (identifier.IdTypeId)
+                    codesetIds.push(identifier.IdTypeId);
+            });
+    
+            let codesetDetailMap = {}
+            if (codesetIds.length > 0) {
+                const codesetIdsStr = codesetIds.map(id => `'${id}'`).join(', ');
+                const query = `SELECT Id, Code, SourceSystem FROM Codeset WHERE Code = 'MB' AND Id IN (${codesetIdsStr})`;
+                console.log(query);
+    
+                const param = {
+                    query : query,
+                    isSosl : false,
+                    elementSourceMethod : '/fetchData',
+                }
+    
+                let codesetDetails = await fetchData(param);
+                codesetDetailMap = codesetDetails?.reduce((obj, codeset) => {
+                    obj[codeset.Id] = codeset
+
+                    return obj;
+                }, {})
+            }
+            patient.Identifiers.records.forEach(identifier => {
+                let idn = {
+                    "value" :  identifier.IdValue,
+                    "system" : identifier.SourceSystem,
+                    "use" : identifier.IdUsageType,
+                }
+
+                if (identifier.IdTypeId && codesetDetailMap !== null && codesetDetailMap[identifier.IdTypeId]) {
+                    idn.type = createType(codesetDetailMap[identifier.IdTypeId])
+                }
+                coverageIdenitifer.push(idn);
+            });
+            coverageNode.identifier = coverageIdenitifer;
+        }
+        
+        coverageNode.subscriberId = patient.SourceSystemIdentifier;
+        return coverageNode;
+     }
+
+     function createType (codeset) {
+        let c = {
+            "system": codeset.SourceSystem,
+            "code": codeset.Code
+        }
+
+        return {
+            coding: [c]
+        }
+     }
+
+     function createPractitionerDetailsNode(practitioner) {
+
+        var practitionerNode = {
+                            "resourceType": "practitioner",
+                            "gender": practitioner.PersonGender,
+                            "birthDate": practitioner.PersonBirthdate,
+                            "subscriberId": practitioner.SourceSystemIdentifier,
+                            "active": practitioner.IsActive,
+                            "identifier":[]
+        }
+
+        if(practitioner?.HealthcareProviders?.records?.length > 0){
+            practitioner.HealthcareProviders.records.forEach( hcpRecord => {
+                practitionerNode.identifier.push(...createIdentifiers(hcpRecord));
+            })
+        }
+
+        practitionerNode.name = createName(practitioner);
+        return practitionerNode;
+     }
+
+     function createLocationDetailsNode(location) {
+        var locationNode = {
+            "resourceType": "Location",
+            "name": location?.Location?.Name,
+            "status": "active"
+        }
+
+        locationNode.identifier = createIdentifiers(location);
+        return locationNode;
+     }
+
+    function createIdentifiers(sobject) {
+        var identifiers = [];
+        let codesetIds = [];
+        if (!sobject || !sobject.Identifiers || !sobject.Identifiers.records) return identifiers;
+        
+        sobject?.Identifiers?.records?.forEach( identifier => {
+            let idn = {
+                "value" :  identifier.IdValue,
+                "system" : identifier.SourceSystem,
+                "use" : identifier.IdUsageType,
+            }
+            identifiers.push(idn)
+        })
+
+        return identifiers;
+     }
+
+     function createName(patient) {
+        var names = [];
+        var name = {};
+
+        name.use = "usual";
+        name.family = patient?.LastName;
+        name.given = [patient?.FirstName];
+        name.suffix  = ["Msc"];
+
+        names.push(name);
+        return names;
+     }
+
+     function populateRequestForm(id, key, value) {
+        requestForms[`form-${id}`] ??= {}; 
+        requestForms[`form-${id}`][key] = value;
+     }
+
+    </script>
+
+<script src="utils/requestForm.js"></script>
+<script src="utils/typeAheadScript.js"></script>"

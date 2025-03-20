@@ -1,0 +1,35 @@
+<%- include('header') -%>
+<div class="text-center center-div" id="baseLogin">
+    <div class="container w-45 border py-5">
+        <div class="title pb-5">
+            <h1 class="heading-style">Prior Authorization Submit Response </h1>
+            <span>Please find the Prior Auth request(s) Status</span>
+            <hr>
+
+            <% if (response.success) { %>
+                <table border="1">
+                    <thead>
+                      <tr>
+                        <th>No.</th>
+                        <th>Status</th>
+                        <th>Prior Auth Id</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <% response.response.result.forEach((item, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td>Approved</td>
+                                <td><%= item.id%></td> 
+                            </tr>
+                            <%})  %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                    <p>Something went wrong. Please check inputs and try again</p>
+                    <% } %>
+        </div>
+    </div>
+</div>
+<%- include('footer') -%> 
+ 

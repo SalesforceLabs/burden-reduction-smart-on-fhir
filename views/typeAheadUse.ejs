@@ -1,0 +1,21 @@
+<%- include('header') -%>
+<%- include('typeAhead',{
+    elementId : 'typeAhead1',
+    elementLabel : 'typAhead',
+    elementSourceMethod : '/fetchData',
+    entityName : 'Account',
+    fields: ['Id','Name'],
+    listId: 'list1'
+}) -%>
+<br>
+<%- include('typeAhead',{
+    elementId : 'typeAhead2',
+    elementLabel : 'typAhead2',
+    elementSourceMethod : '/fetchData',
+    entityName : 'MemberPlan',
+    fields: ['Id','Name'],
+    listId: 'list2'
+}) -%>
+<%- include('footer') -%>
+
+<script src="utils/typeAheadScript.js"></script>"
