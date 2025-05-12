@@ -440,10 +440,16 @@
                 if(contextId) {
                     data.contextId = contextId;
                 }
+                data.questionnaireIds = [...data.questionnaires];
+                delete(data.questionnaires);
                 if(data.questionnaireIds) {
                     data.questionnaireIds.forEach(questionnaire => {
                         questionnaire.isFilled = false;
                         questionnaire.response = [];
+                        questionnaire.Id = questionnaire.id;
+                        delete(questionnaire.id);
+                        questionnaire.dtrmetricId = questionnaire.requestId;
+                        delete(questionnaire.requestId);
                     })     
                 }
 
