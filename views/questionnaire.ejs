@@ -4,7 +4,7 @@
             <div class="title">
                 <h2 class="heading-style">DTR Questionnaire</h2>
                 <div class="form-container">
-                    <form action="/submit" method="POST" enctype="multipart/form-data">
+                    <form enctype="multipart/form-data">
                     <% if (root && root.elements) { %>
                         <% root.elements.forEach((step, stepIndex) => { %>
                             <div class="step <%= stepIndex === 0 ? 'active' : '' %>" id="step-<%= stepIndex %>">
