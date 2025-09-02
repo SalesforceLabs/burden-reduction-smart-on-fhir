@@ -1,6 +1,6 @@
 {
     "hookInstance": "zzv22s7fa2d9-dcdce-44ad-ba6d-35e3b43343",
-    "hook": "order-echo",
+    "hook": "order-sign",
     "id": "hook002345",
     "fhirAuthorization": {
       "access_token": "some-opaque-fhir-access-token",
