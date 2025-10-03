@@ -1,6 +1,54 @@
-.DS_Store
-node_modules
+# Node
+node_modules/
+web/node_modules/
 
-package-lock.json
-config/payerConfig.json
-config/providerConfig.json
+# Next.js build output
+.next/
+web/.next/
+out/
+web/out/
+.vercel/
+web/.vercel/
+
+# Environment files
+.env
+.env.*
+web/.env
+web/.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/pnpm-debug.log*
+logs/
+
+# Coverage / build artifacts
+coverage/
+dist/
+build/
+web/coverage/
+web/dist/
+web/build/
+
+# OS / editor
+.DS_Store
+usage-resources/.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+web/.vscode/
+
+# Temp
+tmp/
+temp/
+*.pid
+*.seed
+*.local
+
+node_modules/
+.sfdx/
